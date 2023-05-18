@@ -1,0 +1,28 @@
+[
+  {
+    "id": 1,
+    "username": "cristina",
+    "hashedpwd": "NrvlDtloQdEEQ7y2cNZVTwo0t2G+Z+ycSorSwMRMpCw\u003d",
+    "score": 0,
+    "numPlay": 0,
+    "numPlayWin": 0,
+    "numPlayLose": 0,
+    "percentWin": 0.0,
+    "lastWinStreak": 0,
+    "maxWinStreak": 0,
+    "guessDistribution": 0
+  },
+  {
+    "id": 2,
+    "username": "francesco",
+    "hashedpwd": "osqx3spYyDUxaDEPUgw7t+RUZuZyLXcb7RkSYHe1hwM\u003d",
+    "score": 0,
+    "numPlay": 0,
+    "numPlayWin": 0,
+    "numPlayLose": 0,
+    "percentWin": 0.0,
+    "lastWinStreak": 0,
+    "maxWinStreak": 0,
+    "guessDistribution": 0
+  }
+]

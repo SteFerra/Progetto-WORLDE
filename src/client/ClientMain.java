@@ -13,8 +13,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 public class ClientMain {
     public static ClientConfig config;
@@ -73,7 +72,7 @@ public class ClientMain {
 
                 //Se il comando è REGISTER -> effettua la registrazione dell'utente
                 if(comando.codice == Comandi.CMD_REGISTER){
-                    if(comando.parametri.size() < 2){
+                    if(comando.parametri.size() != 2){
                         System.out.println("< Numero di parametri non soddisfatto, inserire username e password");
                     }
                     else{
@@ -99,21 +98,21 @@ public class ClientMain {
     }
 
     //La funzione parseCommand serve a riconoscere il comando inserito a console
-    //Tramite l'utilizzo della regular expression le parole contenuto nell'inputStr vengono
-    //inserite in una ArrayList, la prima parola viene usata per riconoscere il codice del comando
+    //le parole contenute nell'inputStr vengono inserite in una ArrayList
+    //la prima parola viene usata per riconoscere il codice del comando, le restanti parole corrispondono ai parametri username-password
     private static Comandi parseComandi(String inputStr) {
-        List<String> matchList = new ArrayList<String>();
-        Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-        Matcher regexMatcher = regex.matcher(inputStr);
-        while (regexMatcher.find()) {
-            if (regexMatcher.group(1) != null) {
-                matchList.add(regexMatcher.group(1));
-            } else if (regexMatcher.group(2) != null) {
-                matchList.add(regexMatcher.group(2));
-            } else {
-                matchList.add(regexMatcher.group());
-            }
+        List<String> matchList = new ArrayList<>();
+        String[] parts = inputStr.split(" ");
+        int len = 0;
+        if (parts.length > 3 ){
+            System.out.println("Errore: hai inserito troppi parametri  ");
+            return null;
         }
+        while (parts.length>len) {
+            matchList.add(parts[len]);
+            len++;
+        }
+
         //se la lista è = 0 ignoro il comando
         if (matchList.size() == 0)
             return null;
@@ -127,7 +126,6 @@ public class ClientMain {
 
         cmd =  new Comandi(code.intValue(), matchList.stream().skip(1).toList());
         return cmd;
-
     }
 
     // la parola data in input viene convertita nel codice del comando utilizzando l'HashMap

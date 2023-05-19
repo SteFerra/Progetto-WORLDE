@@ -128,9 +128,9 @@ public class WordleServer {
         // gestione della LOGIN
         if (cmd.codice == Comandi.CMD_LOGIN) {
             if (userSession.username != null)
-                risposta = new Risposta(CodiciRisposta.ERR_ACTION_DENIED, "login già effettuato");
+                risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "login già effettuato");
             else if (cmd.parametri.size() != 1)
-                risposta = new Risposta(CodiciRisposta.ERR_WRONG_NUM_PARAMS, "numero parametri non corretto.");
+                risposta = new Risposta(CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI, "numero parametri non corretto.");
             else {
                 int res = userAdmin.login(cmd.parametri.get(0), cmd.parametri.get(1));
                 if (res == 0) { //risposta = SUCCESS

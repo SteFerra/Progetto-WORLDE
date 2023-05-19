@@ -1,11 +1,14 @@
 package client;
 
+import com.google.gson.Gson;
 import condivisi.CodiciRisposta;
 import condivisi.Comandi;
+import condivisi.Risposta;
 import condivisi.interfacce.IRegisterService;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
@@ -73,7 +76,7 @@ public class ClientMain {
                 //Se il comando è REGISTER -> effettua la registrazione dell'utente
                 if(comando.codice == Comandi.CMD_REGISTER){
                     if(comando.parametri.size() != 2){
-                        System.out.println("< Numero di parametri non soddisfatto, inserire username e password");
+                        System.out.println("Errore: Numero di parametri non soddisfatto, inserire username e password");
                     }
                     else{
                         var username = comando.parametri.get(0);
@@ -83,8 +86,20 @@ public class ClientMain {
                 }
                 //comando ShowMeRanking -> Mostra a schermo la Classifica salvata in locale
                 else if (comando.codice == Comandi.CMD_SHOWMERANKING){
-                    var classifica = classificaLocale.StampaClassifica();
-                    System.out.printf("Classifica:" + "\n", classifica );
+                    if(comando.parametri.size() != 0 ){
+                        System.out.println("Errore: Il comando non richiede parametri aggiuntivi");
+                    }
+                    else {
+                        var classifica = classificaLocale.StampaClassifica();
+                        System.out.printf("Classifica:" + "\n", classifica);
+                    }
+                }
+                else{
+                    Risposta risposta = invioComando(socketChannel, comando);
+                    if(risposta.esito != CodiciRisposta.SUCCESS)
+                        System.out.println("Errore: " + risposta.esito + "\t" + risposta.MessaggioDiRisposta());
+                    else
+                        gestioneRisposta(comando, risposta);
                 }
             }
         }
@@ -128,12 +143,48 @@ public class ClientMain {
         return cmd;
     }
 
+
+
     // la parola data in input viene convertita nel codice del comando utilizzando l'HashMap
     private static Integer stringToCode(String s) {
         s = s.trim();
         s = s.toLowerCase();
         Integer code = codiciMap.get(s);
         return code;
+    }
+
+
+    //invio i comandi al Server e ricevo in risposta l'esito.
+    private static Risposta invioComando(SocketChannel socketChannel, Comandi comando) throws IOException{
+        final int bufSize = 1024 * 8;
+        var json = new Gson().toJson(comando);
+        byte[] message = json.getBytes();
+        ByteBuffer buffer = ByteBuffer.allocate(bufSize);
+        buffer.clear();
+        buffer.putInt(message.length);
+        buffer.put(message);
+        buffer.flip();
+        socketChannel.write(buffer);
+
+        buffer.clear();
+        socketChannel.read(buffer);
+        buffer.flip();
+        int replyLength = buffer.getInt();
+        byte[] replyBytes = new byte[replyLength];
+        buffer.get(replyBytes);
+
+        var risposta = new Gson().fromJson(new String(replyBytes), Risposta.class);
+        return risposta;
+    }
+
+    //Dopo aver ricevuto l'esito dal Server, procedo a implementare i vari comandi
+    private static void gestioneRisposta(Comandi comando, Risposta risposta){
+        int codice = comando.codice;
+
+        if(codice == 1){
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+            //INSERIRE CHIAMATA RMI PER IL SERVIZIO DI NOTIFICA
+        }
     }
 
     //Qui avviene la registrazione dell'utente attraverso la RMI
@@ -146,11 +197,11 @@ public class ClientMain {
             serverObject = (IRegisterService) RemoteObject;
 
             var risultato = serverObject.register(username, password);
-            if(risultato == CodiciRisposta.ERR_INVALID_USERNAME)
+            if(risultato == CodiciRisposta.ERR_USERNAME_NON_VALIDO)
                 System.out.println("< L'Username inserito non è valido ");
-            else if(risultato == CodiciRisposta.ERR_USERNAME_USED)
+            else if(risultato == CodiciRisposta.ERR_USERNAME_GIÀ_PRESO)
                 System.out.println("< L'Username inserito è già stato preso");
-            else if(risultato == CodiciRisposta.ERR_PASSWORD_TOOSHORT)
+            else if(risultato == CodiciRisposta.ERR_PASSWORD_TROPPO_CORTA)
                 System.out.println("< Password inserita è troppo corta");
             else if(risultato == CodiciRisposta.SUCCESS)
                 System.out.println("< Registrazione effettuata");

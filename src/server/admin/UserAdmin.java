@@ -35,12 +35,12 @@ public class UserAdmin {
     //Registrazione di un utente
     public synchronized int register(String username, String password) throws Exception{
         if(username.length()==0)
-            return CodiciRisposta.ERR_INVALID_USERNAME;
+            return CodiciRisposta.ERR_USERNAME_NON_VALIDO;
 
         if(getUser(username)!=null)
-            return CodiciRisposta.ERR_USERNAME_USED;
+            return CodiciRisposta.ERR_USERNAME_GIÀ_PRESO;
         if(password.length()<=4)
-            return CodiciRisposta.ERR_PASSWORD_TOOSHORT;
+            return CodiciRisposta.ERR_PASSWORD_TROPPO_CORTA;
 
         createUser(username,password);
         return CodiciRisposta.SUCCESS;
@@ -71,10 +71,10 @@ public class UserAdmin {
     public synchronized int login(String username, String password) throws Exception{
         var user = getUser(username);
         if (user==null)
-            return CodiciRisposta.ERR_USERNAME_NOT_EXISTING;
+            return CodiciRisposta.ERR_USERNAME_NON_PRESENTE;
         Hasher hasher = new Hasher();
         if (!hasher.isValidHashPassword(password,user.getHashedPwd()))
-            return CodiciRisposta.ERR_WRONG_PWD;
+            return CodiciRisposta.ERR_PASSWORD_SBAGLIATA;
         return CodiciRisposta.SUCCESS;
     }
 

@@ -43,6 +43,8 @@ public class User {
         return hashedpwd;
     }
 
+    public int getIdByUsername(String username){ return id;}
+
     public int getId() {
         return id;
     }

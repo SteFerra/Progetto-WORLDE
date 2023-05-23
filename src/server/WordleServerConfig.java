@@ -24,6 +24,8 @@ public class WordleServerConfig {
     public int multicastPort = 44444;
     public String multicastAddress ="239.255.32.32";
 
+    public int logoutTimer = 5000;
+
     public void LoadConfig(String filename){
         ConfigReader cfgReader = new ConfigReader(filename);
 
@@ -53,6 +55,9 @@ public class WordleServerConfig {
             //Multicast
             multicastPort = cfgReader.getIntValue("multiport", multicastPort);
             multicastAddress = cfgReader.getStringValue("multicast", multicastAddress);
+
+            //Logout Automatico
+            logoutTimer = cfgReader.getIntValue("logoutTimer", logoutTimer);
         }catch (NumberFormatException e){
             System.out.println("Errore nei dati. Utilizzo dei valori predefiniti.");
         }

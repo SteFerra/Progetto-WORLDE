@@ -1,11 +1,13 @@
 package client;
 
 import condivisi.interfacce.INotifyRanking;
+import condivisi.interfacce.INotifyRankingUpdate;
 
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +21,8 @@ public class ClassificaLocale {
 
     //Interfacce chiamate per la callback
     private INotifyRanking server;
+    private INotifyRankingUpdate stubCallback;
+    private String username;
 
     public ClassificaLocale(String classificasvcHost, String classificasvcName, int classificasvcPort){
         this.classifica = new HashMap<>();
@@ -32,6 +36,24 @@ public class ClassificaLocale {
         server = (INotifyRanking) registry.lookup(classificaName);
     }
 
+    //Registrazione della Callback per la notifica dell'aggiornamento della classifica
+    public void registrazioneCallback(String username){
+        if(stubCallback != null){
+            System.out.println("La Registrazione alla Callback è già stata effettuata");
+            return;
+        }
+        try{
+            System.out.println("\t" + "Registrazione alla Callback in corso");
+            var callbackObj = new NotificaAggClassificaImpl(this);
+            var stub = (INotifyRankingUpdate) UnicastRemoteObject.exportObject(callbackObj, 0);
+            server.registerCallBack(username, stub);
+            System.out.println("\t" + "Registrazione completata");
+            stubCallback = stub;
+            this.username=username;
+        }catch (Exception e){
+            System.err.println("Eccezione del Client: " + e.getMessage());
+        }
+    }
 
     public HashMap<String, Integer> StampaClassifica(){
         return this.classifica;

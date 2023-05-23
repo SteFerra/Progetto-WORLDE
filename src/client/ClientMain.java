@@ -91,7 +91,7 @@ public class ClientMain {
                     }
                     else {
                         var classifica = classificaLocale.StampaClassifica();
-                        System.out.printf("Classifica:" + "\n", classifica);
+                        System.out.printf("\t" + "Classifica:" + "\n", classifica);
                     }
                 }
                 else{
@@ -133,24 +133,24 @@ public class ClientMain {
             return null;
 
         Comandi cmd = null;
-        Integer code = stringToCode(matchList.get(0));  // controllo se il comando è associato a un codice
-        if (code == null) {
+        Integer codice = stringToCode(matchList.get(0));  // controllo se il comando è associato a un codice
+        if (codice == null) {
             System.out.println("< "+"Comando sconosciuto.");
             return cmd;
         }
 
-        cmd =  new Comandi(code.intValue(), matchList.stream().skip(1).toList());
+        cmd =  new Comandi(codice.intValue(), matchList.stream().skip(1).toList());
         return cmd;
     }
 
 
 
-    // la parola data in input viene convertita nel codice del comando utilizzando l'HashMap
+    // presa la parola data in input restituisce il codice del comando associato utilizzando l'HashMap
     private static Integer stringToCode(String s) {
         s = s.trim();
         s = s.toLowerCase();
-        Integer code = codiciMap.get(s);
-        return code;
+        Integer codice = codiciMap.get(s);
+        return codice;
     }
 
 
@@ -183,7 +183,7 @@ public class ClientMain {
 
         if(codice == 1){
             System.out.println("\t" + risposta.MessaggioDiRisposta());
-            //INSERIRE CHIAMATA RMI PER IL SERVIZIO DI NOTIFICA
+            classificaLocale.registrazioneCallback(comando.parametri.get(0));
         }
     }
 

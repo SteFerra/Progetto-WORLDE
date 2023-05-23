@@ -25,6 +25,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 // rappresenta il server
@@ -32,10 +33,13 @@ public class WordleServer {
 
     private final WordleServerConfig config;
 
-    private final UserAdmin userAdmin;
+    private  UserAdmin userAdmin;
     private final RankingAdmin rankingAdmin;
 
     private INotifyRanking rankingNotifyService;
+
+    private utentiConnessi utenticonnessi;
+
 
     public WordleServer() throws IOException {
         config = new WordleServerConfig();
@@ -47,6 +51,8 @@ public class WordleServer {
         //creazione della classifica
         rankingAdmin = new RankingAdmin();
         rankingAdmin.inizializza();
+
+        utenticonnessi = new utentiConnessi();
     }
 
     public void execute() throws Exception{
@@ -56,6 +62,10 @@ public class WordleServer {
 
         // avvio del servizio per l'aggiornamento classifica che utilizza RMI Callback
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
+
+        //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
+        Thread logoutAutomaticoThread = new Thread(new logoutAutomatico(utenticonnessi.utentiLoggati, config.logoutTimer));
+        logoutAutomaticoThread.start();
 
         startReceiverCommand(); //Ricezione Comandi
     }
@@ -87,7 +97,8 @@ public class WordleServer {
                     System.out.println("Nuova connessione ricevuta");
                     client.configureBlocking(false);
                     var key2 = client.register(selector, SelectionKey.OP_READ);
-                    key2.attach(new UserSession());  // associo una sessione con utente anonimo
+                    key2.attach(new UserSession());// associo una sessione con utente anonimo
+
                 }
                 // Se il canale associato alla chiave è leggibile,
                 // allora procedo con l'invio del messaggio di risposta.
@@ -129,14 +140,21 @@ public class WordleServer {
         if (cmd.codice == Comandi.CMD_LOGIN) {
             if (userSession.username != null)
                 risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "login già effettuato");
-            else if (cmd.parametri.size() != 1)
+            else if (cmd.parametri.size() != 2)
                 risposta = new Risposta(CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI, "numero parametri non corretto.");
             else {
-                int res = userAdmin.login(cmd.parametri.get(0), cmd.parametri.get(1));
-                if (res == 0) { //risposta = SUCCESS
-                    userSession.username = cmd.parametri.get(0);   // note: la user session non è più anonima, ma riferita al primo parametro (username)
+                if(!utenticonnessi.èConnesso(cmd.parametri.get(0))) {
+                    int res = userAdmin.login(cmd.parametri.get(0), cmd.parametri.get(1));
+                    if (res == 0) { //risposta = SUCCESS
+                        userSession.username = cmd.parametri.get(0);
+                        utenticonnessi.utentiLoggati.put(cmd.parametri.get(0), client);
+                        System.out.println("I Cient connessi sono: " + utenticonnessi.utentiLoggati);
+                    }
+                    risposta = new Risposta(res, "risultato login");
                 }
-                risposta = new Risposta(res, "login result.");
+                else{
+                    risposta = new Risposta(CodiciRisposta.ERR_UTENTE_GIÀ_LOGGATO,"utente già loggato");
+                }
             }
         }
         // invio la risposta al client
@@ -150,6 +168,7 @@ public class WordleServer {
             client.write(buffer);
         }
     }
+
 
     // registrazione del RMI per il comando "REGISTER"
     private void startRegisterService() throws RemoteException {

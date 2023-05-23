@@ -12,15 +12,18 @@ public class Risposta {
 
     // trasforma il codice di response in messaggio.
     public String MessaggioDiRisposta(){
-        switch (esito){
+        return switch (esito) {
             //in caso di risultato corretto
-            case CodiciRisposta.SUCCESS: return "Operazione eseguita con successo.";
+            case CodiciRisposta.SUCCESS -> "Operazione eseguita con successo.";
 
             //in caso di errori
-            case CodiciRisposta.ERR_USERNAME_NON_VALIDO: return "Nome utente non valido";
-            case CodiciRisposta.ERR_USERNAME_NON_PRESENTE: return "Nome utente non esistente";
+            case CodiciRisposta.ERR_USERNAME_NON_VALIDO -> "Nome utente non valido";
 
-            default: return "Codice di risposta sconosciuto ("+esito+").";
-        }
+            //errori nella login
+            case CodiciRisposta.ERR_USERNAME_NON_PRESENTE -> "Nome utente non esistente";
+            case CodiciRisposta.ERR_UTENTE_GIÀ_LOGGATO -> "L'utente risulta già loggato";
+
+            default -> "Codice di risposta sconosciuto (" + esito + ").";
+        };
     }
 }

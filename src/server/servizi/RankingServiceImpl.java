@@ -53,15 +53,18 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
         if(!clients.contains(interfacciaClient)){
             clients.add(interfacciaClient);
             clientHashMap.put(interfacciaClient, username);
-            System.out.println("Un nuovo Client si è iscritto alla Callback per la ricezioni di aggiornamenti della Classifica.");
+            System.out.println();
+            System.out.println("Un nuovo Client si è iscritto alla Callback per la ricezione di aggiornamenti della Classifica.");
             System.out.printf("Client : %s" + "\n", username);
-            sendRankToEveryone(interfacciaClient/*, username*/); //Invia la classifica al Client
+            System.out.println();
+            sendRankToEveryone(interfacciaClient, username); //Invia la classifica al Client
         }
         else System.out.printf("Il client %s è già registrato alla Callback", username);
     }
 
-    public synchronized void sendRankToEveryone(INotifyRankingUpdate interfacciaClient/*, String username*/){
+    public synchronized void sendRankToEveryone(INotifyRankingUpdate interfacciaClient, String username){
         var classifica = RankingAdmin.getRanking();
+        //INVIARE LA CLASSIFICA IN QUALCHE MODO
         try{
             interfacciaClient.rankingUpdateEvent(classifica);//chiamo INotifyRankingUpdate.rankingUpdateEvent
         }catch (RemoteException e){

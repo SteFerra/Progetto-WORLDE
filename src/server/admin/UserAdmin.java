@@ -9,8 +9,7 @@ import server.Hasher;
 import server.domini.User;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class UserAdmin {
 
@@ -68,6 +67,7 @@ public class UserAdmin {
         return usersList.stream().filter(user -> user.getUsername().equals(username)).findAny().orElse(null);
     }
 
+    //cerca se l'username è presente nel file degli utenti registrati
     public synchronized int login(String username, String password) throws Exception{
         var user = getUser(username);
         if (user==null)
@@ -77,6 +77,7 @@ public class UserAdmin {
             return CodiciRisposta.ERR_PASSWORD_SBAGLIATA;
         return CodiciRisposta.SUCCESS;
     }
+
 
     // salvataggio della lista utenti su file json.
     private void saveUserList(List<User> usersList) throws IOException{

@@ -10,5 +10,6 @@ public class CodiciRisposta {
     public static final int ERR_AZIONE_NEGATA = -5;
     public static final int ERR_NUMERO_PARAMETRI_ERRATI = -6;
     public static final int ERR_PASSWORD_SBAGLIATA = -7;
+    public static final int ERR_UTENTE_GIÀ_LOGGATO = -8;
 
 }

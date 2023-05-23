@@ -9,8 +9,10 @@ import condivisi.interfacce.IRegisterService;
 import server.admin.RankingAdmin;
 import server.admin.UserAdmin;
 import server.domini.UserSession;
+import server.domini.utentiConnessi;
 import server.servizi.RankingServiceImpl;
 import server.servizi.RegisterService;
+import server.servizi.logoutAutomatico;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -25,7 +27,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 // rappresenta il server

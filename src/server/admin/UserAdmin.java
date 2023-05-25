@@ -69,12 +69,19 @@ public class UserAdmin {
 
     //cerca se l'username è presente nel file degli utenti registrati
     public synchronized int login(String username, String password) throws Exception{
-        var user = getUser(username);
-        if (user==null)
+        var utente = getUser(username);
+        if (utente==null)
             return CodiciRisposta.ERR_USERNAME_NON_PRESENTE;
         Hasher hasher = new Hasher();
-        if (!hasher.isValidHashPassword(password,user.getHashedPwd()))
+        if (!hasher.isValidHashPassword(password,utente.getHashedPwd()))
             return CodiciRisposta.ERR_PASSWORD_SBAGLIATA;
+        return CodiciRisposta.SUCCESS;
+    }
+
+    public synchronized int logout(String username){
+        var utente = getUser(username);
+        if(utente == null)
+            return CodiciRisposta.ERR_USERNAME_NON_PRESENTE;
         return CodiciRisposta.SUCCESS;
     }
 

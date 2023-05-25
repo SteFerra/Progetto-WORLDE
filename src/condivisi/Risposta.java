@@ -18,11 +18,15 @@ public class Risposta {
 
             //in caso di errori
             case CodiciRisposta.ERR_USERNAME_NON_VALIDO -> "Nome utente non valido";
+            case CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI -> "Il numero di parametri inseriti non è corretto";
 
             //errori nella login
             case CodiciRisposta.ERR_USERNAME_NON_PRESENTE -> "Nome utente non esistente";
             case CodiciRisposta.ERR_UTENTE_GIÀ_LOGGATO -> "L'utente risulta già loggato";
 
+            //logout
+            case CodiciRisposta.ERR_AZIONE_NEGATA -> "Devi prima effettuare il login";
+            case CodiciRisposta.ERR_USERNAME_NON_VALIDO_LOGOUT -> "Lo username non corrisponde a quello inserito durante la login";
             default -> "Codice di risposta sconosciuto (" + esito + ").";
         };
     }

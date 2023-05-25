@@ -76,7 +76,7 @@ public class ClientMain {
                 //Se il comando è REGISTER -> effettua la registrazione dell'utente
                 if(comando.codice == Comandi.CMD_REGISTER){
                     if(comando.parametri.size() != 2){
-                        System.out.println("Errore: Numero di parametri non soddisfatto, inserire username e password");
+                        System.out.println("\t" + "Errore: Numero di parametri non soddisfatto, inserire username e password");
                     }
                     else{
                         var username = comando.parametri.get(0);
@@ -87,7 +87,7 @@ public class ClientMain {
                 //comando ShowMeRanking -> Mostra a schermo la Classifica salvata in locale
                 else if (comando.codice == Comandi.CMD_SHOWMERANKING){
                     if(comando.parametri.size() != 0 ){
-                        System.out.println("Errore: Il comando non richiede parametri aggiuntivi");
+                        System.out.println("\t" + "Errore: Il comando non richiede parametri aggiuntivi");
                     }
                     else {
                         var classifica = classificaLocale.StampaClassifica();
@@ -97,7 +97,7 @@ public class ClientMain {
                 else{
                     Risposta risposta = invioComando(socketChannel, comando);
                     if(risposta.esito != CodiciRisposta.SUCCESS)
-                        System.out.println("Errore: " + risposta.esito + "\t" + risposta.MessaggioDiRisposta());
+                        System.out.println("\t" + "Errore: " + risposta.esito + "\t" + risposta.MessaggioDiRisposta());
                     else
                         gestioneRisposta(comando, risposta);
                 }
@@ -120,7 +120,7 @@ public class ClientMain {
         String[] parts = inputStr.split(" ");
         int len = 0;
         if (parts.length > 3 ){
-            System.out.println("Errore: hai inserito troppi parametri  ");
+            System.out.println("\t" + "Errore: Hai inserito troppi parametri  ");
             return null;
         }
         while (parts.length>len) {
@@ -135,7 +135,7 @@ public class ClientMain {
         Comandi cmd = null;
         Integer codice = stringToCode(matchList.get(0));  // controllo se il comando è associato a un codice
         if (codice == null) {
-            System.out.println("< "+"Comando sconosciuto.");
+            System.out.println("\t" + "Errore: Comando sconosciuto.");
             return cmd;
         }
 
@@ -181,9 +181,16 @@ public class ClientMain {
     private static void gestioneRisposta(Comandi comando, Risposta risposta){
         int codice = comando.codice;
 
+        //LOGIN
         if(codice == 1){
-            System.out.println("\t" + risposta.MessaggioDiRisposta());
             classificaLocale.registrazioneCallback(comando.parametri.get(0));
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+        }
+
+        //LOGOUT
+        if(codice == 2){
+            classificaLocale.deregistrazioneCallback();
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
         }
     }
 

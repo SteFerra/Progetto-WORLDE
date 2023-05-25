@@ -11,5 +11,6 @@ public class CodiciRisposta {
     public static final int ERR_NUMERO_PARAMETRI_ERRATI = -6;
     public static final int ERR_PASSWORD_SBAGLIATA = -7;
     public static final int ERR_UTENTE_GIÀ_LOGGATO = -8;
+    public static final int ERR_USERNAME_NON_VALIDO_LOGOUT = -9;
 
 }

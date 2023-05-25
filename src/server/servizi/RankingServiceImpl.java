@@ -49,7 +49,7 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
     }
 
     //Metodo effettivo della registrazione del Client alla Callback
-    public synchronized void registerCallBack(String username, INotifyRankingUpdate interfacciaClient) throws RemoteException{
+    public synchronized void registraCallback(String username, INotifyRankingUpdate interfacciaClient) throws RemoteException{
         if(!clients.contains(interfacciaClient)){
             clients.add(interfacciaClient);
             clientHashMap.put(interfacciaClient, username);
@@ -57,12 +57,22 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
             System.out.println("Un nuovo Client si è iscritto alla Callback per la ricezione di aggiornamenti della Classifica.");
             System.out.printf("Client : %s" + "\n", username);
             System.out.println();
-            sendRankToEveryone(interfacciaClient, username); //Invia la classifica al Client
+            inviaClassifica(interfacciaClient, username); //Invia la classifica al Client
         }
         else System.out.printf("Il client %s è già registrato alla Callback", username);
     }
 
-    public synchronized void sendRankToEveryone(INotifyRankingUpdate interfacciaClient, String username){
+    public synchronized void cancRegistrazioneCallback(String username, INotifyRankingUpdate interfacciaClient) throws RemoteException{
+        if(clients.remove(interfacciaClient)){
+            System.out.printf("Il Client [%s] si è cancellato dalla registrazione della Callback \n", username);
+            clientHashMap.remove(interfacciaClient);
+        }
+        else{
+            System.out.printf("Impossibile cancellare la registrazione alla Callback del Client [%s] \n", username);
+        }
+    }
+
+    public synchronized void inviaClassifica(INotifyRankingUpdate interfacciaClient, String username){
         var classifica = RankingAdmin.getRanking();
         //INVIARE LA CLASSIFICA IN QUALCHE MODO
         try{
@@ -71,4 +81,6 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
             e.printStackTrace();
         }
     }
+
+
 }

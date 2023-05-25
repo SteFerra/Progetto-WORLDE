@@ -46,12 +46,28 @@ public class ClassificaLocale {
             System.out.println("\t" + "Registrazione alla Callback in corso");
             var callbackObj = new NotificaAggClassificaImpl(this);
             var stub = (INotifyRankingUpdate) UnicastRemoteObject.exportObject(callbackObj, 0);
-            server.registerCallBack(username, stub);
+            server.registraCallback(username, stub);
             System.out.println("\t" + "Registrazione completata");
             stubCallback = stub;
             this.username=username;
         }catch (Exception e){
             System.err.println("Eccezione del Client: " + e.getMessage());
+        }
+    }
+
+    public void deregistrazioneCallback(){
+        if(stubCallback == null){
+            System.out.println("\t" + "Hai già effettuato la cancellazione della registrazione alla Callback");
+        }
+        try{
+            if(server!=null && stubCallback != null){
+                System.out.println("\t" + "Sto effettuando la cancellazione della registrazione alla Callback");
+                server.cancRegistrazioneCallback(username, stubCallback);
+                stubCallback=null;
+                System.out.println("\t" + "Cancellazione completata");
+            }
+        }catch (RemoteException e){
+            e.printStackTrace();
         }
     }
 

@@ -6,5 +6,7 @@ import java.rmi.RemoteException;
 //Interfaccia usata per la registrazione/deregistrazione della callback del client
 public interface INotifyRanking extends Remote{
 
-    public void registerCallBack(String username, INotifyRankingUpdate clientInterfaccia) throws RemoteException;
+    public void registraCallback(String username, INotifyRankingUpdate clientInterfaccia) throws RemoteException;
+
+    public void cancRegistrazioneCallback(String username, INotifyRankingUpdate clientInterfaccia) throws RemoteException;
 }

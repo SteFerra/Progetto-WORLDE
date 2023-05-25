@@ -137,7 +137,7 @@ public class WordleServer {
         Risposta risposta = null;
         var userSession = (UserSession)key.attachment();   // acquisizione della sessione
 
-        // gestione della LOGIN
+        //comando LOGIN
         if (cmd.codice == Comandi.CMD_LOGIN) {
             if (userSession.username != null)
                 risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "login già effettuato");
@@ -149,13 +149,30 @@ public class WordleServer {
                     if (res == 0) { //risposta = SUCCESS
                         userSession.username = cmd.parametri.get(0);
                         utenticonnessi.utentiLoggati.put(cmd.parametri.get(0), client);
-                        System.out.println("I Cient connessi sono: " + utenticonnessi.utentiLoggati);
                     }
                     risposta = new Risposta(res, "risultato login");
                 }
                 else{
                     risposta = new Risposta(CodiciRisposta.ERR_UTENTE_GIÀ_LOGGATO,"utente già loggato");
                 }
+            }
+        }
+        //comando LOGOUT
+        else if(cmd.codice == Comandi.CMD_LOGOUT){
+            if(userSession.username == null)
+                risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "devi prima fare il login");
+            else if(cmd.parametri.size() != 1)
+                risposta = new Risposta(CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI, "numero dei parametri errato, inserisci solo l'username");
+            else if(!userSession.username.equals(cmd.parametri.get(0)))
+                risposta = new Risposta(CodiciRisposta.ERR_USERNAME_NON_VALIDO_LOGOUT, "lo username non corrisponde a quello inserito durante la login ");
+            else{
+                userSession.clear();
+                int res = userAdmin.logout(cmd.parametri.get(0));
+                risposta = new Risposta(res, "risultato logout");
+                if(res == 0){//logout andato a buon fine e rimuovo lo username dalla lista degli utenti loggati
+                    utenticonnessi.utentiLoggati.remove(cmd.parametri.get(0));
+                }
+
             }
         }
         // invio la risposta al client

@@ -16,6 +16,8 @@ import server.servizi.RegisterService;
 import server.servizi.ServerShutdownHook;
 import server.servizi.logoutAutomatico;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
@@ -28,8 +30,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 // rappresenta il server
 public class WordleServer {
@@ -45,6 +49,8 @@ public class WordleServer {
 
     public RankingServiceImpl rankingService;
 
+    private static List<String> words;
+
 
     public WordleServer() throws IOException {
         config = new WordleServerConfig();
@@ -59,6 +65,8 @@ public class WordleServer {
 
         utenticonnessi = new utentiConnessi();
 
+        words=new ArrayList<>();
+
     }
 
     public void execute() throws Exception{
@@ -69,6 +77,11 @@ public class WordleServer {
         // avvio del servizio per l'aggiornamento classifica che utilizza RMI Callback
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
         rankingService = (RankingServiceImpl) rankingNotifyService;
+
+        //Thread per la lettura periodica della parola segreta
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,10, TimeUnit.SECONDS);
+
 
         //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
         Thread logoutAutomaticoThread = new Thread(new logoutAutomatico(utenticonnessi.utentiLoggati, config.logoutTimer));
@@ -197,6 +210,29 @@ public class WordleServer {
             buffer.flip();
             client.write(buffer);
         }
+    }
+
+    //Estrae una parola casuale dal file words.txt
+    private static void estraiParola(){
+        try (BufferedReader reader = new BufferedReader(new FileReader("words.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.length() == 10) {
+                    words.add(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(words.isEmpty()){
+            System.out.println("Il file contenenti le parole risulta vuoto!");
+            return;
+        }
+        Random random = new Random();
+        int indice = random.nextInt(words.size());
+        String parolaSegreta = words.get(indice);
+        System.out.printf("La nuova parola segreta è: %s \n", parolaSegreta);
     }
 
     public void aggiornaCallback(SocketChannel clientSocket) throws RemoteException {

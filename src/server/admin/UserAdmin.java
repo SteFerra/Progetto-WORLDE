@@ -85,9 +85,13 @@ public class UserAdmin {
         return CodiciRisposta.SUCCESS;
     }
 
+    public List<User> getUserList(){
+        return usersList;
+    }
+
 
     // salvataggio della lista utenti su file json.
-    private void saveUserList(List<User> usersList) throws IOException{
+    public void saveUserList(List<User> usersList) throws IOException{
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         FileOutputStream fos = new FileOutputStream(listaUtentiFile);
         OutputStreamWriter ow = new OutputStreamWriter(fos);
@@ -95,5 +99,9 @@ public class UserAdmin {
         ow.write(userJson);
         ow.flush();
         ow.close();
+    }
+
+    public void saveUserListHook() throws IOException {
+        saveUserList(usersList);
     }
 }

@@ -1,7 +1,10 @@
 package server.domini;
 
 
+import java.io.IOException;
 import java.net.Socket;
+import java.nio.channels.Selector;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,5 +20,25 @@ public class utentiConnessi {
         return false;
     }
 
+    public String getUsername(SocketChannel client){
+        for (Map.Entry<String, SocketChannel> entry : utentiLoggati.entrySet()) {
+            if (client.equals(entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
 
+    //chiude i socket degli utenti connessi al server
+    //viene chiamato dal ServerShutdownHook
+    public void chiudiSocket() throws IOException {
+        for(SocketChannel socketChannel : utentiLoggati.values()){
+            try{
+                socketChannel.close();
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+    }
 }

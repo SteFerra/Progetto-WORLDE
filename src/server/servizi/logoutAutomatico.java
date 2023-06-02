@@ -1,6 +1,9 @@
 package server.servizi;
 
+import condivisi.interfacce.INotifyRankingUpdate;
+
 import java.nio.channels.SocketChannel;
+import java.rmi.RemoteException;
 import java.util.Map;
 
 
@@ -22,8 +25,9 @@ public class logoutAutomatico implements Runnable {
                 for(Map.Entry<String, SocketChannel> elemento : utentiLoggati.entrySet()){
                     String username = elemento.getKey();
                     SocketChannel socketChannel = elemento.getValue();
-                    if(!socketChannel.isConnected())
+                    if(!socketChannel.isConnected()) {
                         utentiLoggati.remove(username);
+                    }
                 }
                 Thread.sleep(logoutTimer);
             }

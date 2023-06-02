@@ -1,8 +1,10 @@
 package client;
 
 
+import condivisi.ClassificaData;
 import condivisi.interfacce.INotifyRanking;
 import condivisi.interfacce.INotifyRankingUpdate;
+import server.servizi.RankingServiceImpl;
 
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteObject;
@@ -19,6 +21,7 @@ public class NotificaAggClassificaImpl extends RemoteObject implements INotifyRa
 
 
     @Override
-    public void rankingUpdateEvent(HashMap<String, Integer> classifica) throws RemoteException {
+    public void rankingUpdateEvent(ClassificaData classificaData) throws RemoteException {
+        classificalocale.aggiornaClassificaLocale(classificaData);
     }
 }

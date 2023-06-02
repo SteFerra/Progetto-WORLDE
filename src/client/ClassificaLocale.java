@@ -1,5 +1,6 @@
 package client;
 
+import condivisi.ClassificaData;
 import condivisi.interfacce.INotifyRanking;
 import condivisi.interfacce.INotifyRankingUpdate;
 
@@ -69,6 +70,11 @@ public class ClassificaLocale {
         }catch (RemoteException e){
             e.printStackTrace();
         }
+    }
+
+    //aggiorna la classifica salvata in locale dalla classifica inviata dal Server
+    void aggiornaClassificaLocale(ClassificaData classificaData){
+        this.classifica = classificaData.getClassifica();
     }
 
     public HashMap<String, Integer> StampaClassifica(){

@@ -5,6 +5,7 @@ import condivisi.CodiciRisposta;
 import condivisi.Comandi;
 import condivisi.Risposta;
 import condivisi.interfacce.INotifyRanking;
+import condivisi.interfacce.INotifyRankingUpdate;
 import condivisi.interfacce.IRegisterService;
 import server.admin.RankingAdmin;
 import server.admin.UserAdmin;
@@ -12,6 +13,7 @@ import server.domini.UserSession;
 import server.domini.utentiConnessi;
 import server.servizi.RankingServiceImpl;
 import server.servizi.RegisterService;
+import server.servizi.ServerShutdownHook;
 import server.servizi.logoutAutomatico;
 
 import java.io.IOException;
@@ -41,6 +43,8 @@ public class WordleServer {
 
     private utentiConnessi utenticonnessi;
 
+    public RankingServiceImpl rankingService;
+
 
     public WordleServer() throws IOException {
         config = new WordleServerConfig();
@@ -54,6 +58,7 @@ public class WordleServer {
         rankingAdmin.inizializza();
 
         utenticonnessi = new utentiConnessi();
+
     }
 
     public void execute() throws Exception{
@@ -63,10 +68,16 @@ public class WordleServer {
 
         // avvio del servizio per l'aggiornamento classifica che utilizza RMI Callback
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
+        rankingService = (RankingServiceImpl) rankingNotifyService;
 
         //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
         Thread logoutAutomaticoThread = new Thread(new logoutAutomatico(utenticonnessi.utentiLoggati, config.logoutTimer));
         logoutAutomaticoThread.start();
+
+        //Thread ShutdownHook che salva i vari parametri prima della chiusura del Server
+        ServerShutdownHook shutdownHook = new ServerShutdownHook(userAdmin, rankingAdmin, utenticonnessi);
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
+        System.out.println("ServerShutdownHook avviato");
 
         startReceiverCommand(); //Ricezione Comandi
     }
@@ -118,7 +129,8 @@ public class WordleServer {
         try {
             client.read(buffer);  // lettura del comando
         }
-        catch(SocketException e){  // accade quando il client termina in modo anomalo
+        catch(SocketException e){// accade quando il client termina in modo anomalo
+            aggiornaCallback(client);
             client.close();
             return;
         }
@@ -140,7 +152,7 @@ public class WordleServer {
         //comando LOGIN
         if (cmd.codice == Comandi.CMD_LOGIN) {
             if (userSession.username != null)
-                risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "login già effettuato");
+                risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA_LOGIN, "login già effettuato");
             else if (cmd.parametri.size() != 2)
                 risposta = new Risposta(CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI, "numero parametri non corretto.");
             else {
@@ -184,6 +196,14 @@ public class WordleServer {
             buffer.put(replyBytes);
             buffer.flip();
             client.write(buffer);
+        }
+    }
+
+    public void aggiornaCallback(SocketChannel clientSocket) throws RemoteException {
+        String username = utenticonnessi.getUsername(clientSocket);
+        INotifyRankingUpdate stub = rankingNotifyService.getStub(username);
+        if(stub!=null){
+            rankingService.cancRegistrazioneCallback(username, stub);
         }
     }
 

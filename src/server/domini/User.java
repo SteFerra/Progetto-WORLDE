@@ -8,12 +8,12 @@ public class User {
     private String hashedpwd;
 
     //informazioni dell'utente relative al gioco come punteggio, numero partite...
-    private int score;
-    private int numPlay;
-    private int numPlayWin;
-    private int numPlayLose;
-    private float percentWin;
-    private int lastWinStreak;
+    private int punteggio;
+    private int numPartiteGiocate;
+    private int numPartiteVinte;
+    private int numPartitePerse;
+    private float percentVittoria;
+    private int ultimaWinStreak;
     private int maxWinStreak;
     private int guessDistribution;
 
@@ -23,12 +23,12 @@ public class User {
         this.username=username;
         this.hashedpwd=hashedpwd;
 
-        this.score=0;
-        this.numPlay=0;
-        this.numPlayWin=0;
-        this.numPlayLose=0;
-        this.percentWin=0;
-        this.lastWinStreak=0;
+        this.punteggio=0;
+        this.numPartiteGiocate=0;
+        this.numPartiteVinte=0;
+        this.numPartitePerse=0;
+        this.percentVittoria=0;
+        this.ultimaWinStreak=0;
         this.maxWinStreak=0;
         this.guessDistribution=0;
     }

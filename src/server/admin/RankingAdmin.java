@@ -11,8 +11,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 
 // Classe usata per la creazione/gestione della classifica
-// Viene utilizzata una HashMap(String, Integer)
-//                        Username -> Punteggio
+// Viene utilizzata una HashMap(String username, Integer punteggio)
 // La Classifica viene salvata in un file .json per mantenere la persistenza del
 // sistema al riavvio del Server
 public class RankingAdmin {
@@ -30,17 +29,17 @@ public class RankingAdmin {
             FileInputStream inputStream = new FileInputStream(classificaFile);
             JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
             Type collectionType = new TypeToken<HashMap<String, Integer>>() {}.getType();
-            fileClassifica = new Gson().fromJson(reader, collectionType);
+            classifica = new Gson().fromJson(reader, collectionType);
         }
     }
 
     //Restituisce la Classifica
-    public static HashMap<String, Integer> getRanking(){
+    public synchronized static HashMap<String, Integer> getRanking(){
         return classifica;
     }
 
     //Salvo la classifica sul file .json
-    private void salvaClassifica(){
+    public void salvaClassifica(){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try{
             FileOutputStream fileOutputStream = new FileOutputStream(classificaFile);

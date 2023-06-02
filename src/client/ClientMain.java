@@ -7,6 +7,7 @@ import condivisi.Risposta;
 import condivisi.interfacce.IRegisterService;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -16,6 +17,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.*;
+
 
 
 public class ClientMain {
@@ -53,6 +55,8 @@ public class ClientMain {
             System.out.println("Server non attivo. Il Client viene terminato.");
             System.exit(0);
         }
+
+
         System.out.println("In attesa di comandi");
 
         Scanner scanner = new Scanner(System.in);
@@ -61,15 +65,7 @@ public class ClientMain {
             System.out.print("> ");
             String inputStr = scanner.nextLine();
 
-            // comando EXIT
-            if (inputStr.equalsIgnoreCase("exit")) {
-                //Aggiungere la chiusura della callback dell'aggiornamento classifica --->
-                socketChannel.close();
-                break;
-            }
-
-
-            // altrimenti il comando viene analizzato
+            //il comando viene analizzato
             var comando = parseComandi(inputStr);
             if (comando != null){
 
@@ -84,14 +80,15 @@ public class ClientMain {
                         registrazioneUtente(username, password);
                     }
                 }
-                //comando ShowMeRanking -> Mostra a schermo la Classifica salvata in locale
+                //comando ShowMeRanking -> Mostra a schermo la Classifica salvata in locale(non chiama il server)
                 else if (comando.codice == Comandi.CMD_SHOWMERANKING){
                     if(comando.parametri.size() != 0 ){
                         System.out.println("\t" + "Errore: Il comando non richiede parametri aggiuntivi");
                     }
                     else {
                         var classifica = classificaLocale.StampaClassifica();
-                        System.out.printf("\t" + "Classifica:" + "\n", classifica);
+                        if(classifica.isEmpty()) System.out.println("\tDevi prima effettuare il login");
+                        else System.out.printf("\t Classifica:" + "\n" + "\t" + classifica);
                     }
                 }
                 else{
@@ -164,10 +161,22 @@ public class ClientMain {
         buffer.putInt(message.length);
         buffer.put(message);
         buffer.flip();
-        socketChannel.write(buffer);
+        try {
+            socketChannel.write(buffer);
+        }
+        catch (Exception e){
+            System.out.println("\t Il Server risulta offline");
+            System.exit(1);
+        }
 
         buffer.clear();
-        socketChannel.read(buffer);
+        try {
+            socketChannel.read(buffer);
+        }
+        catch (Exception e){
+            System.out.println("\t Il Server risulta offline");
+            System.exit(1);
+        }
         buffer.flip();
         int replyLength = buffer.getInt();
         byte[] replyBytes = new byte[replyLength];
@@ -193,6 +202,7 @@ public class ClientMain {
             System.out.println("\t" + risposta.MessaggioDiRisposta());
         }
     }
+
 
     //Qui avviene la registrazione dell'utente attraverso la RMI
     public static void registrazioneUtente(String username, String password){

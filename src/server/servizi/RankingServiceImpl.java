@@ -1,9 +1,12 @@
 package server.servizi;
 
+import condivisi.ClassificaData;
 import condivisi.interfacce.INotifyRanking;
 import condivisi.interfacce.INotifyRankingUpdate;
 import server.admin.RankingAdmin;
+import server.domini.utentiConnessi;
 
+import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -11,6 +14,7 @@ import java.rmi.server.RemoteObject;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 //classe per gestire il servizio di aggiornamento e notifica della Classifica
 //Implementa l'interfaccia INotifyRanking
@@ -28,6 +32,10 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
         clients = new ArrayList<INotifyRankingUpdate>();
         clientHashMap = new HashMap<INotifyRankingUpdate, String>();
         this.rankingAdmin = rankingAdmin;
+    }
+
+    public HashMap<INotifyRankingUpdate, String> getClientHashMap(){
+        return clientHashMap;
     }
 
     // fa partire il servizio per il Client di registrazione della callback
@@ -66,17 +74,28 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
         if(clients.remove(interfacciaClient)){
             System.out.printf("Il Client [%s] si è cancellato dalla registrazione della Callback \n", username);
             clientHashMap.remove(interfacciaClient);
+            System.out.println("Client callback attivi: " + clientHashMap.values());
         }
         else{
             System.out.printf("Impossibile cancellare la registrazione alla Callback del Client [%s] \n", username);
         }
     }
 
+    public INotifyRankingUpdate getStub(String username){
+        for(Map.Entry<INotifyRankingUpdate, String> entry : clientHashMap.entrySet()){
+            if(entry.getValue().equals(username)){
+                INotifyRankingUpdate stub = entry.getKey();
+                return stub;
+            }
+        }
+        return null;
+    }
+
     public synchronized void inviaClassifica(INotifyRankingUpdate interfacciaClient, String username){
         var classifica = RankingAdmin.getRanking();
-        //INVIARE LA CLASSIFICA IN QUALCHE MODO
+        ClassificaData classificaData = new ClassificaData(classifica);
         try{
-            interfacciaClient.rankingUpdateEvent(classifica);//chiamo INotifyRankingUpdate.rankingUpdateEvent
+            interfacciaClient.rankingUpdateEvent(classificaData);//chiamo INotifyRankingUpdate.rankingUpdateEvent
         }catch (RemoteException e){
             e.printStackTrace();
         }

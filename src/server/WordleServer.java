@@ -49,7 +49,7 @@ public class WordleServer {
 
     public RankingServiceImpl rankingService;
 
-    private static List<String> words;
+    private static List<String> paroleSegrete;
 
 
     public WordleServer() throws IOException {
@@ -65,7 +65,7 @@ public class WordleServer {
 
         utenticonnessi = new utentiConnessi();
 
-        words=new ArrayList<>();
+        paroleSegrete=new ArrayList<>();
 
     }
 
@@ -78,7 +78,10 @@ public class WordleServer {
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
         rankingService = (RankingServiceImpl) rankingNotifyService;
 
-        //Thread per la lettura periodica della parola segreta
+        //Legge il file words.txt e salva tutte le parole in una Lista
+        leggiFileParole();
+
+        //ThreadPool per la lettura periodica della parola segreta
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
         executor.scheduleAtFixedRate(WordleServer::estraiParola,3,10, TimeUnit.SECONDS);
 
@@ -212,26 +215,30 @@ public class WordleServer {
         }
     }
 
-    //Estrae una parola casuale dal file words.txt
-    private static void estraiParola(){
+    //legge il file contenente le parole e le salva in una Lista<String>
+    private void leggiFileParole(){
         try (BufferedReader reader = new BufferedReader(new FileReader("words.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.length() == 10) {
-                    words.add(line);
+                    paroleSegrete.add(line);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        if(words.isEmpty()){
-            System.out.println("Il file contenenti le parole risulta vuoto!");
+    //Estrae una parola casuale dalla lista delle parole segrete.
+    private static void estraiParola(){
+        if(paroleSegrete.isEmpty()){
+            System.out.println("Il file contenente le parole segrete risulta vuoto!");
             return;
         }
+
         Random random = new Random();
-        int indice = random.nextInt(words.size());
-        String parolaSegreta = words.get(indice);
+        int indice = random.nextInt(paroleSegrete.size());
+        String parolaSegreta = paroleSegrete.get(indice);
         System.out.printf("La nuova parola segreta è: %s \n", parolaSegreta);
     }
 

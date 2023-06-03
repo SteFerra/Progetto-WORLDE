@@ -15,7 +15,7 @@ public class User {
     private float percentVittoria;
     private int ultimaWinStreak;
     private int maxWinStreak;
-    private int guessDistribution;
+    private int[] guessDistribution;
 
 
     public User(int id, String username, String hashedpwd){
@@ -30,7 +30,7 @@ public class User {
         this.percentVittoria=0;
         this.ultimaWinStreak=0;
         this.maxWinStreak=0;
-        this.guessDistribution=0;
+        this.guessDistribution=null;
     }
 
     public String getUsername(){

@@ -30,7 +30,7 @@ public class User {
         this.percentVittoria=0;
         this.ultimaWinStreak=0;
         this.maxWinStreak=0;
-        this.guessDistribution=null;
+        this.guessDistribution= new int[12];
     }
 
     public String getUsername(){

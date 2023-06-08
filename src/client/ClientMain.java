@@ -47,6 +47,10 @@ public class ClientMain {
             System.exit(0);
         }
 
+        //thread per unirsi e ricevere i risultati del gioco dal gruppo multicast
+        Thread multicastClientThread = new MulticastClientThread(config.multicastAddress, config.multicastPort);
+        multicastClientThread.start();
+
         // apertura del canale socket TCP per inviare i comandi al server
         SocketChannel socketChannel = null;
         try {

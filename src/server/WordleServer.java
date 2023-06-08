@@ -11,10 +11,7 @@ import server.admin.RankingAdmin;
 import server.admin.UserAdmin;
 import server.domini.UserSession;
 import server.domini.utentiConnessi;
-import server.servizi.RankingServiceImpl;
-import server.servizi.RegisterService;
-import server.servizi.ServerShutdownHook;
-import server.servizi.logoutAutomatico;
+import server.servizi.*;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -44,10 +41,10 @@ public class WordleServer {
     private final RankingAdmin rankingAdmin;
 
     private INotifyRanking rankingNotifyService;
+    public RankingServiceImpl rankingService;
+    private final MulticastService multicastService;
 
     private utentiConnessi utenticonnessi;
-
-    public RankingServiceImpl rankingService;
 
     private static List<String> paroleSegrete;
 
@@ -67,6 +64,9 @@ public class WordleServer {
 
         paroleSegrete=new ArrayList<>();
 
+        multicastService = new MulticastService(config.multicastAddress, config.multicastPort);
+
+
     }
 
     public void execute() throws Exception{
@@ -77,6 +77,8 @@ public class WordleServer {
         // avvio del servizio per l'aggiornamento classifica che utilizza RMI Callback
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
         rankingService = (RankingServiceImpl) rankingNotifyService;
+
+        multicastService.start();
 
         //Legge il file words.txt e salva tutte le parole in una Lista
         leggiFileParole();

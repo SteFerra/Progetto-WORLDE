@@ -111,6 +111,7 @@ public class ClientMain {
         codiciMap.put("login", Comandi.CMD_LOGIN);
         codiciMap.put("logout", Comandi.CMD_LOGOUT);
         codiciMap.put("showmeranking", Comandi.CMD_SHOWMERANKING);
+        codiciMap.put("playwordle", Comandi.CMD_PLAYWORDLE);
     }
 
     //La funzione parseCommand serve a riconoscere il comando inserito a console
@@ -194,15 +195,20 @@ public class ClientMain {
     private static void gestioneRisposta(Comandi comando, Risposta risposta){
         int codice = comando.codice;
 
-        //LOGIN
+        //login
         if(codice == 1){
             classificaLocale.registrazioneCallback(comando.parametri.get(0));
             System.out.println("\t" + risposta.MessaggioDiRisposta());
         }
 
-        //LOGOUT
+        //logout
         if(codice == 2){
             classificaLocale.deregistrazioneCallback();
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+        }
+
+        //playWORDLE
+        if(codice == 4){
             System.out.println("\t" + risposta.MessaggioDiRisposta());
         }
     }

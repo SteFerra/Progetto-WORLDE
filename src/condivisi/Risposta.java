@@ -28,6 +28,8 @@ public class Risposta {
             //logout
             case CodiciRisposta.ERR_AZIONE_NEGATA -> "Devi prima effettuare il login";
             case CodiciRisposta.ERR_USERNAME_NON_VALIDO_LOGOUT -> "Lo username non corrisponde a quello inserito durante il login";
+
+            case CodiciRisposta.PROVA -> "Messaggio correttamente inviato dal ThreadPool";
             default -> "Codice di risposta sconosciuto (" + esito + ").";
         };
     }

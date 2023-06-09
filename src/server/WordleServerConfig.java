@@ -26,6 +26,11 @@ public class WordleServerConfig {
 
     public int logoutTimer = 5000;
 
+    public int corePoolSize = 5;
+    public int maximumPoolSize = 10;
+    public long keepAliveTime = 20000; //20 secondi
+    public int sizeWorkQueue = 5;
+
     public void LoadConfig(String filename){
         ConfigReader cfgReader = new ConfigReader(filename);
 
@@ -58,6 +63,13 @@ public class WordleServerConfig {
 
             //Logout Automatico
             logoutTimer = cfgReader.getIntValue("logoutTimer", logoutTimer);
+
+            //ThreadPool
+            corePoolSize = cfgReader.getIntValue("corePoolSize", corePoolSize);
+            maximumPoolSize = cfgReader.getIntValue("maximumPoolSize", maximumPoolSize);
+            keepAliveTime = cfgReader.getLongValue("keepAliveTime", keepAliveTime);
+            sizeWorkQueue = cfgReader.getIntValue("sizeWorkQueue", sizeWorkQueue);
+
         }catch (NumberFormatException e){
             System.out.println("Errore nei dati. Utilizzo dei valori predefiniti.");
         }

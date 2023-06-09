@@ -28,9 +28,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 // rappresenta il server
 public class WordleServer {
@@ -46,7 +44,10 @@ public class WordleServer {
 
     private utentiConnessi utenticonnessi;
 
+    public static Integer IDpartita = 0;
     private static List<String> paroleSegrete;
+
+    private final ThreadPoolExecutor threadPool;
 
 
     public WordleServer() throws IOException {
@@ -62,11 +63,11 @@ public class WordleServer {
 
         utenticonnessi = new utentiConnessi();
 
-        paroleSegrete=new ArrayList<>();
+        paroleSegrete = new ArrayList<>();
 
         multicastService = new MulticastService(config.multicastAddress, config.multicastPort);
 
-
+        threadPool = new ThreadPoolExecutor(config.corePoolSize, config.maximumPoolSize, config.keepAliveTime, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(config.corePoolSize), new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
     public void execute() throws Exception{
@@ -85,7 +86,7 @@ public class WordleServer {
 
         //ThreadPool per la lettura periodica della parola segreta
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,10, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,420, TimeUnit.SECONDS);
 
 
         //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
@@ -205,6 +206,15 @@ public class WordleServer {
 
             }
         }
+        else if (userSession.username == null){
+            risposta = new Risposta(CodiciRisposta.ERR_AZIONE_NEGATA, "devi prima fare il login");
+        }
+        else{
+            //creo il Task per gestire il comando da sottomettere al ThreadPool e lo metto in coda
+            TaskThreadPool task = new TaskThreadPool(userSession, client, cmd, rankingService, userAdmin, multicastService, rankingAdmin);
+            threadPool.submit(task);
+        }
+
         // invio la risposta al client
         if (risposta != null) {
             var replyStr =  new Gson().toJson(risposta);  // response inviato in json
@@ -241,7 +251,8 @@ public class WordleServer {
         Random random = new Random();
         int indice = random.nextInt(paroleSegrete.size());
         String parolaSegreta = paroleSegrete.get(indice);
-        System.out.printf("La nuova parola segreta è: %s \n", parolaSegreta);
+        IDpartita += 1;
+        System.out.printf("La nuova parola segreta è: %s - IDpartita: %s \n", parolaSegreta ,IDpartita);
     }
 
     public void aggiornaCallback(SocketChannel clientSocket) throws RemoteException {

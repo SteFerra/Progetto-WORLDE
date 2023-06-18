@@ -10,6 +10,7 @@ public class Comandi {
     public static final int CMD_LOGOUT = 2;
     public static final int CMD_SHOWMERANKING = 3;
     public static final int CMD_PLAYWORDLE = 4;
+    public static final int CMD_SENDWORD = 5;
 
     public int codice;  // codice del comando
     public ArrayList<String> parametri; // parametri del comando

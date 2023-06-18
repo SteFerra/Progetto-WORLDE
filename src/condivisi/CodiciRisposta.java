@@ -13,6 +13,13 @@ public class CodiciRisposta {
     public static final int ERR_UTENTE_GIÀ_LOGGATO = -8;
     public static final int ERR_USERNAME_NON_VALIDO_LOGOUT = -9;
     public static final int ERR_AZIONE_NEGATA_LOGIN = -10;
-    public static final int PROVA = 99;
+    public static final int ERR_PARTITA_GIÀ_GIOCATA = -11;
+    public static final int ERR_DEVI_PRIMA_INIZIARE_A_GIOCARE = -12;
+    public static final int ERR_COMANDO_NON_IMPLEMENTATO = -13;
+    public static final int ERR_PAROLA_TROPPO_CORTA = -14;
+    public static final int ERR_PAROLA_NON_PRESENTE = -15;
+    public static final int ERR_HAI_PERSO = -16;
+    public static final int HAI_VINTO = -17;
+    public static final int PLAY = 1;
 
 }

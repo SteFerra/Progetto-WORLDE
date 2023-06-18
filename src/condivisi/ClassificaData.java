@@ -6,13 +6,13 @@ import java.util.HashMap;
 //Classe che rappresenta la classifica utilizzata nell'invio per la notifica callback
 //Implementa Serializable
 public class ClassificaData implements Serializable {
-    private HashMap<String, Integer> classificaData;
+    private HashMap<String, Double> classificaData;
 
-    public ClassificaData(HashMap<String, Integer> classifica){
+    public ClassificaData(HashMap<String, Double> classifica){
         classificaData = classifica;
     }
 
-    public HashMap<String, Integer> getClassifica() {
+    public HashMap<String, Double> getClassifica() {
         return classificaData;
     }
 }

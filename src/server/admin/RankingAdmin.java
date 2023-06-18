@@ -16,7 +16,7 @@ import java.util.HashMap;
 // sistema al riavvio del Server
 public class RankingAdmin {
 
-    private static HashMap<String, Integer> classifica;
+    private static HashMap<String, Double> classifica;
 
     private static final String classificaFile = "Classifica.json";
 
@@ -28,13 +28,13 @@ public class RankingAdmin {
         if(fileClassifica.exists() && !fileClassifica.isDirectory()){
             FileInputStream inputStream = new FileInputStream(classificaFile);
             JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
-            Type collectionType = new TypeToken<HashMap<String, Integer>>() {}.getType();
+            Type collectionType = new TypeToken<HashMap<String, Double>>() {}.getType();
             classifica = new Gson().fromJson(reader, collectionType);
         }
     }
 
     //Restituisce la Classifica
-    public synchronized static HashMap<String, Integer> getRanking(){
+    public synchronized static HashMap<String, Double> getRanking(){
         return classifica;
     }
 
@@ -52,5 +52,10 @@ public class RankingAdmin {
             e.printStackTrace();
             System.out.println("Errore nel salvataggio del file: " + e.getMessage());
         }
+    }
+
+    public synchronized static void aggiornaClassifica(String username, double punteggio){
+        classifica.put(username, punteggio);
+        System.out.println("Classifica aggiornata");
     }
 }

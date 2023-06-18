@@ -9,6 +9,7 @@ import condivisi.interfacce.INotifyRankingUpdate;
 import condivisi.interfacce.IRegisterService;
 import server.admin.RankingAdmin;
 import server.admin.UserAdmin;
+import server.domini.User;
 import server.domini.UserSession;
 import server.domini.utentiConnessi;
 import server.servizi.*;
@@ -35,7 +36,7 @@ public class WordleServer {
 
     private final WordleServerConfig config;
 
-    private  UserAdmin userAdmin;
+    private static UserAdmin userAdmin;
     private final RankingAdmin rankingAdmin;
 
     private INotifyRanking rankingNotifyService;
@@ -45,7 +46,10 @@ public class WordleServer {
     private utentiConnessi utenticonnessi;
 
     public static Integer IDpartita = 0;
+    public static String parolaSegreta;
     private static List<String> paroleSegrete;
+
+    public Gioco gioco;
 
     private final ThreadPoolExecutor threadPool;
 
@@ -86,7 +90,7 @@ public class WordleServer {
 
         //ThreadPool per la lettura periodica della parola segreta
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,420, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,75, TimeUnit.SECONDS);
 
 
         //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
@@ -180,6 +184,7 @@ public class WordleServer {
                     if (res == 0) { //risposta = SUCCESS
                         userSession.username = cmd.parametri.get(0);
                         utenticonnessi.utentiLoggati.put(cmd.parametri.get(0), client);
+                        //gioco = new Gioco(userAdmin, rankingService, userSession, client);
                     }
                     risposta = new Risposta(res, "risultato login");
                 }
@@ -211,7 +216,7 @@ public class WordleServer {
         }
         else{
             //creo il Task per gestire il comando da sottomettere al ThreadPool e lo metto in coda
-            TaskThreadPool task = new TaskThreadPool(userSession, client, cmd, rankingService, userAdmin, multicastService, rankingAdmin);
+            TaskThreadPool task = new TaskThreadPool(userSession, client, cmd, rankingService, userAdmin, multicastService, rankingAdmin, paroleSegrete );
             threadPool.submit(task);
         }
 
@@ -242,6 +247,7 @@ public class WordleServer {
     }
 
     //Estrae una parola casuale dalla lista delle parole segrete.
+    //Ogni qual volta estrae la parola, resetta la possibilità di giocare a tutti i giocatori
     private static void estraiParola(){
         if(paroleSegrete.isEmpty()){
             System.out.println("Il file contenente le parole segrete risulta vuoto!");
@@ -250,7 +256,8 @@ public class WordleServer {
 
         Random random = new Random();
         int indice = random.nextInt(paroleSegrete.size());
-        String parolaSegreta = paroleSegrete.get(indice);
+        parolaSegreta = paroleSegrete.get(indice);
+        userAdmin.resettaPartita();
         IDpartita += 1;
         System.out.printf("La nuova parola segreta è: %s - IDpartita: %s \n", parolaSegreta ,IDpartita);
     }

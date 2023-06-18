@@ -14,7 +14,7 @@ import java.util.*;
 public class UserAdmin {
 
     static final String listaUtentiFile = "UserList.json";
-    private List<User> usersList;
+    public List<User> usersList;
 
     // inizializzazione che consiste nella creazione della lista degli utenti, o il ripristino da json.
     public void initialize() throws IOException{
@@ -85,8 +85,70 @@ public class UserAdmin {
         return CodiciRisposta.SUCCESS;
     }
 
+    public Boolean haGiocato(String username){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                return user.getHaGiocato();
+            }
+        }
+        return false;
+    }
+
+    public Boolean staGiocando(String username){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                return user.getStaGiocando();
+            }
+        }
+        return false;
+    }
+
+    //mette a true/false la variabile haGiocato del giocatore
+    public void setHaGiocato(String username, Boolean bool){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                user.setHaGiocato(bool);
+            }
+        }
+    }
+
+    //setta la variabile staGiocando
+    public void setStaGiocando(String username, Boolean bool){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                user.setStaGiocando(bool);
+            }
+        }
+    }
+
+    //in caso di vittoria aggiorno tutti i parametri positivi
+    public void aggiornaPartiteVinte(String username, int tentativi){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                user.numPartiteGiocate++;
+                user.numPartiteVinte++;
+                user.guessDistribution[tentativi]++;
+                user.percentVittoria = ((float) user.numPartiteVinte/ user.numPartiteGiocate)*100;
+                user.ultimaWinStreak++;
+            }
+        }
+    }
+
+    public void aggiornaPunteggio(String username){
+        for(User user: usersList){
+            if(user.getUsername().equals(username)){
+                user.aggiornaPunteggio();
+            }
+        }
+    }
     public List<User> getUserList(){
         return usersList;
+    }
+
+    public void resettaPartita(){
+        for(User user : usersList){
+            user.setHaGiocato(false);
+        }
     }
 
 

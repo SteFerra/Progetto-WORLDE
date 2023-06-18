@@ -9,7 +9,9 @@ import condivisi.interfacce.IRegisterService;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.channels.SocketChannel;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
@@ -91,16 +93,16 @@ public class ClientMain {
                     }
                     else {
                         var classifica = classificaLocale.StampaClassifica();
-                        if(classifica.isEmpty()) System.out.println("\tDevi prima effettuare il login");
+                        if(classifica.isEmpty()) System.out.println("\t Devi prima effettuare il login");
                         else System.out.printf("\t Classifica:" + "\n" + "\t" + classifica);
                     }
                 }
                 else{
                     Risposta risposta = invioComando(socketChannel, comando);
-                    if(risposta.esito != CodiciRisposta.SUCCESS)
-                        System.out.println("\t" + "Errore: " + risposta.esito + "\t" + risposta.MessaggioDiRisposta());
+                    if(risposta.esito != CodiciRisposta.SUCCESS && risposta.esito != CodiciRisposta.PLAY && risposta.esito != CodiciRisposta.HAI_VINTO)
+                        System.out.println("\t" + risposta.MessaggioDiRisposta());
                     else
-                        gestioneRisposta(comando, risposta);
+                        gestioneRisposta(comando, risposta, socketChannel);
                 }
             }
         }
@@ -112,6 +114,7 @@ public class ClientMain {
         codiciMap.put("logout", Comandi.CMD_LOGOUT);
         codiciMap.put("showmeranking", Comandi.CMD_SHOWMERANKING);
         codiciMap.put("playwordle", Comandi.CMD_PLAYWORDLE);
+        codiciMap.put("sendword", Comandi.CMD_SENDWORD);
     }
 
     //La funzione parseCommand serve a riconoscere il comando inserito a console
@@ -192,7 +195,7 @@ public class ClientMain {
     }
 
     //Dopo aver ricevuto l'esito dal Server, procedo a implementare i vari comandi
-    private static void gestioneRisposta(Comandi comando, Risposta risposta){
+    private static void gestioneRisposta(Comandi comando, Risposta risposta, SocketChannel socketChannel) throws IOException {
         int codice = comando.codice;
 
         //login
@@ -210,6 +213,58 @@ public class ClientMain {
         //playWORDLE
         if(codice == 4){
             System.out.println("\t" + risposta.MessaggioDiRisposta());
+        }
+
+        //sendWord
+        if(codice == 5){
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+            final int bufSize = 1024*8;
+            ByteBuffer buffer = ByteBuffer.allocate(bufSize);
+            buffer.clear();
+            try {
+                socketChannel.read(buffer);  // lettura del ste di tentativi
+            }
+            catch(SocketException e){
+                e.printStackTrace();
+                return;
+            }
+            buffer.flip();
+            if(!buffer.hasRemaining()) {
+                socketChannel.close();
+                return;
+            }
+            byte[] receivedBytes = new byte[buffer.remaining()];
+            buffer.get(receivedBytes);
+            String messaggio = new String(receivedBytes);
+            Set<String> set = new LinkedHashSet<>(Arrays.asList(messaggio.split(",")));
+            for(String string : set){
+                string = string.replace("[", "").replace("]", "").trim();
+                System.out.println("\t" + string);
+            }
+            buffer.clear();
+            socketChannel.configureBlocking(false);
+
+            // Imposta un timeout di 5 secondi
+            long timeout = 1500; // Tempo in millisecondi
+            long startTime = System.currentTimeMillis();
+
+            while (System.currentTimeMillis() - startTime < timeout) {
+                int bytesRead = socketChannel.read(buffer);
+                if (bytesRead == -1) {
+                    // Il server ha chiuso la connessione
+                    socketChannel.close();
+                    return;
+                } else if (bytesRead > 0) {
+                    buffer.flip();
+                    byte[] receivedBytes2 = new byte[buffer.remaining()];
+                    buffer.get(receivedBytes2);
+                    String traduzione = new String(receivedBytes2);
+                    System.out.println("\tLa traduzione in Italiano della parola segreta è: " + traduzione);
+                    break;
+                }
+                buffer.clear();
+            }
+            socketChannel.configureBlocking(true);
         }
     }
 

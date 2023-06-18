@@ -1,5 +1,7 @@
 package server.domini;
 
+import server.admin.RankingAdmin;
+
 //Classe che rappresenta un utente
 public class User {
 
@@ -8,14 +10,16 @@ public class User {
     private String hashedpwd;
 
     //informazioni dell'utente relative al gioco come punteggio, numero partite...
-    private int punteggio;
-    private int numPartiteGiocate;
-    private int numPartiteVinte;
-    private int numPartitePerse;
-    private float percentVittoria;
-    private int ultimaWinStreak;
-    private int maxWinStreak;
-    private int[] guessDistribution;
+    public double punteggio;
+    public int numPartiteGiocate;
+    public int numPartiteVinte;
+    public int numPartitePerse;
+    public float percentVittoria;
+    public int ultimaWinStreak;
+    public int maxWinStreak;
+    public int[] guessDistribution;
+    public Boolean haGiocato;
+    public Boolean staGiocando;
 
 
     public User(int id, String username, String hashedpwd){
@@ -31,6 +35,8 @@ public class User {
         this.ultimaWinStreak=0;
         this.maxWinStreak=0;
         this.guessDistribution= new int[12];
+        this.haGiocato = false;
+        this.staGiocando = false;
     }
 
     public String getUsername(){
@@ -42,6 +48,26 @@ public class User {
 
         return hashedpwd;
     }
+
+    public void aggiornaPunteggio(){
+        int sum = 0, numGuessed = 0, maxAttempts=12;
+        for (int i = 0; i < guessDistribution.length; i++) {
+            sum += (i + 1) * guessDistribution[i];
+            numGuessed += guessDistribution[i];
+        }
+        // Per le parole non indovinate (partite perse),
+        // considero un numero di tentativi pari a 7 (ovvero maxAttempts + 1).
+        sum += (maxAttempts + 1) * (numPartitePerse);
+        this.punteggio = ((double) sum / (double) numPartiteGiocate);
+        RankingAdmin.aggiornaClassifica(username, punteggio);
+        System.out.println("Risultato aggiornato: " + punteggio);
+    }
+
+    public Boolean getHaGiocato(){ return haGiocato; }
+    public Boolean getStaGiocando(){return staGiocando;}
+
+    public void setHaGiocato(boolean bool){ this.haGiocato = bool;}
+    public void setStaGiocando(boolean bool){this.staGiocando = bool;}
 
     public int getIdByUsername(String username){ return id;}
 

@@ -15,7 +15,7 @@ import java.util.Map;
 //Questa classe è utilizzata per mantenere salvata la classifica in locale
 public class ClassificaLocale {
 
-    private HashMap<String, Integer> classifica;
+    private HashMap<String, Double> classifica;
     private final String classificaName;
     private final String classificaHost;
     private final int classificaPort;
@@ -77,7 +77,7 @@ public class ClassificaLocale {
         this.classifica = classificaData.getClassifica();
     }
 
-    public HashMap<String, Integer> StampaClassifica(){
+    public HashMap<String, Double> StampaClassifica(){
         return this.classifica;
     }
 }

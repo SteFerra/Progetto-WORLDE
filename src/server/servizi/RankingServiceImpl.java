@@ -21,7 +21,7 @@ import java.util.Map;
 public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
 
     //Array dei client registrati alla callback
-    private final ArrayList<INotifyRankingUpdate> clients;
+    public static ArrayList<INotifyRankingUpdate> clients;
     //HashMap contenente callback con relativo username
     private final HashMap<INotifyRankingUpdate, String> clientHashMap;
 
@@ -98,6 +98,16 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
             interfacciaClient.rankingUpdateEvent(classificaData);//chiamo INotifyRankingUpdate.rankingUpdateEvent
         }catch (RemoteException e){
             e.printStackTrace();
+        }
+    }
+    public static void aggiornaPosizioni(ArrayList<INotifyRankingUpdate> clients){
+        String messaggio = "C'è stato un cambiamento nelle prime tre posizioni della classifica";
+        for(INotifyRankingUpdate client : clients){
+            try{
+                client.aggiornaPosiz(messaggio);
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }
         }
     }
 

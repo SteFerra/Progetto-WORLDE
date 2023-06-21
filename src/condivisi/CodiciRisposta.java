@@ -20,6 +20,8 @@ public class CodiciRisposta {
     public static final int ERR_PAROLA_NON_PRESENTE = -15;
     public static final int ERR_HAI_PERSO = -16;
     public static final int HAI_VINTO = -17;
+    public static final int ERR_DEVI_PRIMA_FINIRE_LA_PARTITA = -18;
+    public static final int STATISTICHE = -19;
     public static final int PLAY = 1;
 
 }

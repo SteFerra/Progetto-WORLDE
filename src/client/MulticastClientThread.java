@@ -2,10 +2,13 @@ package client;
 
 
 import javax.xml.crypto.Data;
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 //Classe del Thread che viene utilizzato per ricevere i risultati dagli altri utenti del gruppo multicast
 public class MulticastClientThread extends Thread {
@@ -29,7 +32,7 @@ public class MulticastClientThread extends Thread {
             while(!isInterrupted()){
                 DatagramPacket packet = new DatagramPacket(new byte[size], size);
                 socket.receive(packet);
-                System.out.println("Messaggio arrivato dal gruppo Multicast " + new String(packet.getData(), packet.getOffset(), packet.getLength()));
+                System.out.println("Messaggio arrivato dal gruppo Multicast: " + new String(packet.getData(), packet.getOffset(), packet.getLength()));
             }
         }
         catch (Exception e){
@@ -37,5 +40,4 @@ public class MulticastClientThread extends Thread {
         }
 
     }
-
 }

@@ -50,13 +50,11 @@ public class User {
     }
 
     public void aggiornaPunteggio(){
-        int sum = 0, numGuessed = 0, maxAttempts=12;
+        int sum = 0, maxAttempts=12;
         for (int i = 0; i < guessDistribution.length; i++) {
             sum += (i + 1) * guessDistribution[i];
-            numGuessed += guessDistribution[i];
         }
-        // Per le parole non indovinate (partite perse),
-        // considero un numero di tentativi pari a 7 (ovvero maxAttempts + 1).
+
         sum += (maxAttempts + 1) * (numPartitePerse);
         this.punteggio = ((double) sum / (double) numPartiteGiocate);
         RankingAdmin.aggiornaClassifica(username, punteggio);

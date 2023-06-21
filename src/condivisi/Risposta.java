@@ -17,6 +17,7 @@ public class Risposta {
             case CodiciRisposta.SUCCESS -> "Operazione eseguita con successo";
             case CodiciRisposta.PLAY -> "Puoi iniziare ad indovinare la parola segreta";
             case CodiciRisposta.HAI_VINTO -> "Complimenti hai indovinato la parola segreta!";
+            case CodiciRisposta.STATISTICHE -> "Ecco le tue statistiche";
 
             //in caso di errori
             case CodiciRisposta.ERR_COMANDO_NON_IMPLEMENTATO -> "Comando non implementato";

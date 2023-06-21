@@ -1,10 +1,15 @@
 package server.servizi;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class MulticastService {
@@ -12,10 +17,12 @@ public class MulticastService {
     private final int multicastPort;
     DatagramSocket datagramSocket;
     InetAddress group;
+    public List<String> arrayList;
 
     public MulticastService(String multicastAddress, int multicastPort){
         this.multicastAddress=multicastAddress;
         this.multicastPort=multicastPort;
+        this.arrayList = new ArrayList<>();
     }
 
     //apertura connessione al gruppo multicast
@@ -32,9 +39,9 @@ public class MulticastService {
         }
     }
 
-    public void inviaMessaggioMulticast(){
-
-        String message = "wallets update";
+    public void inviaMessaggioMulticast(Set<String> parole){
+        arrayList.add(parole.toString());
+        String message = String.join(",", parole);
         byte[] content = message.getBytes();
         DatagramPacket packet = new DatagramPacket(content, content.length, group, multicastPort);
         // Invio il pacchetto.

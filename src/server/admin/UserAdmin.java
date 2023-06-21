@@ -130,6 +130,18 @@ public class UserAdmin {
                 user.guessDistribution[tentativi]++;
                 user.percentVittoria = ((float) user.numPartiteVinte/ user.numPartiteGiocate)*100;
                 user.ultimaWinStreak++;
+                if(user.ultimaWinStreak > user.maxWinStreak) user.maxWinStreak=user.ultimaWinStreak;
+            }
+        }
+    }
+
+    public void aggiornaPartitePerse(String username, int tentativi){
+        for(User user : usersList){
+            if(user.getUsername().equals(username)){
+                user.numPartiteGiocate++;
+                user.numPartitePerse++;
+                user.percentVittoria = ((float) user.numPartiteVinte/ user.numPartiteGiocate)*100;
+                user.ultimaWinStreak = 0;
             }
         }
     }
@@ -149,6 +161,21 @@ public class UserAdmin {
         for(User user : usersList){
             user.setHaGiocato(false);
         }
+    }
+
+    public HashMap<String, Object> getStatistiche(String username){
+        for(User user: usersList){
+            if(user.getUsername().equals(username)){
+                HashMap<String, Object> statistiche = new HashMap<>();
+                statistiche.put("partite giocate", user.numPartiteGiocate);
+                statistiche.put("percentuale vittoria", user.percentVittoria);
+                statistiche.put("ultima win streak", user.ultimaWinStreak);
+                statistiche.put("massima win streak", user.maxWinStreak);
+                statistiche.put("guess distribution", user.guessDistribution);
+                return statistiche;
+            }
+        }
+        return null;
     }
 
 

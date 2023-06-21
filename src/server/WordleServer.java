@@ -270,7 +270,6 @@ public class WordleServer {
         }
     }
 
-
     // registrazione del RMI per il comando "REGISTER"
     private void startRegisterService() throws RemoteException {
         IRegisterService rService = new RegisterService(userAdmin);

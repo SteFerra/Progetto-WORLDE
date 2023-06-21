@@ -11,6 +11,9 @@ public class Comandi {
     public static final int CMD_SHOWMERANKING = 3;
     public static final int CMD_PLAYWORDLE = 4;
     public static final int CMD_SENDWORD = 5;
+    public static final int CMD_SENDMESTATISTIC = 6;
+    public static final int CMD_SHARE = 7;
+    public static final int CMD_SHOWMESHARING = 8;
 
     public int codice;  // codice del comando
     public ArrayList<String> parametri; // parametri del comando

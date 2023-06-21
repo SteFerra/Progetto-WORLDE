@@ -1,18 +1,23 @@
 package client;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import condivisi.CodiciRisposta;
 import condivisi.Comandi;
 import condivisi.Risposta;
 import condivisi.interfacce.IRegisterService;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -99,7 +104,8 @@ public class ClientMain {
                 }
                 else{
                     Risposta risposta = invioComando(socketChannel, comando);
-                    if(risposta.esito != CodiciRisposta.SUCCESS && risposta.esito != CodiciRisposta.PLAY && risposta.esito != CodiciRisposta.HAI_VINTO)
+                    if(risposta.esito != CodiciRisposta.SUCCESS && risposta.esito != CodiciRisposta.PLAY && risposta.esito != CodiciRisposta.HAI_VINTO
+                            && risposta.esito != CodiciRisposta.ERR_HAI_PERSO && risposta.esito != CodiciRisposta.STATISTICHE)
                         System.out.println("\t" + risposta.MessaggioDiRisposta());
                     else
                         gestioneRisposta(comando, risposta, socketChannel);
@@ -115,6 +121,9 @@ public class ClientMain {
         codiciMap.put("showmeranking", Comandi.CMD_SHOWMERANKING);
         codiciMap.put("playwordle", Comandi.CMD_PLAYWORDLE);
         codiciMap.put("sendword", Comandi.CMD_SENDWORD);
+        codiciMap.put("sendmestatistic", Comandi.CMD_SENDMESTATISTIC);
+        codiciMap.put("share", Comandi.CMD_SHARE);
+        codiciMap.put("showmesharing", Comandi.CMD_SHOWMESHARING);
     }
 
     //La funzione parseCommand serve a riconoscere il comando inserito a console
@@ -266,6 +275,80 @@ public class ClientMain {
             }
             socketChannel.configureBlocking(true);
         }
+
+        //sendMeStatistic
+        if(codice == 6){
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+            final int bufSize = 1024*8;
+            ByteBuffer buffer = ByteBuffer.allocate(bufSize);
+            buffer.clear();
+            try {
+                socketChannel.read(buffer); //leggo le statistiche
+            }
+            catch(SocketException e){
+                e.printStackTrace();
+                return;
+            }
+            buffer.flip();
+            if(!buffer.hasRemaining()) {
+                socketChannel.close();
+                return;
+            }
+            byte[] receivedBytes = new byte[buffer.remaining()];
+            buffer.get(receivedBytes);
+            String json = new String(receivedBytes);
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Type type = new TypeToken<HashMap<String, Object>>(){}.getType();
+            HashMap<String,Object> statistiche = gson.fromJson(json, type); //deserializzo da json al tipo corretto
+            stampaStatistiche(statistiche);
+
+        }
+        //share
+        if(codice == 7){
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+        }
+        //showMeSharing
+        if(codice == 8){
+            System.out.println("\t" + risposta.MessaggioDiRisposta());
+            final int bufSize = 1024*8;
+            ByteBuffer buffer = ByteBuffer.allocate(bufSize);
+            buffer.clear();
+            try {
+                socketChannel.read(buffer);  // lettura del ste di tentativi inviati dal server in multicast
+            }
+            catch(SocketException e){
+                e.printStackTrace();
+                return;
+            }
+            buffer.flip();
+            if(!buffer.hasRemaining()) {
+                socketChannel.close();
+                return;
+            }
+            byte[] receivedBytes = new byte[buffer.remaining()];
+            buffer.get(receivedBytes);
+            String messaggio = new String(receivedBytes);
+            List<String> set = new ArrayList<>(Arrays.asList(messaggio.split(",")));
+            for(String string : set){
+                string = string.replace("[", "").replace("]", "").trim();
+                System.out.println("\t" + string);
+            }
+            buffer.clear();
+        }
+    }
+
+
+    private static void stampaStatistiche(HashMap<String, Object> statistiche){
+        int partiteGiocate = ((Double) statistiche.get("partite giocate")).intValue();
+        float percentualeVittoria = ((Double) statistiche.get("percentuale vittoria")).floatValue();
+        int ultimaWinStreak = ((Double) statistiche.get("ultima win streak")).intValue();
+        int massimaWinStreak = ((Double) statistiche.get("massima win streak")).intValue();
+        String guessDistribution = statistiche.get("guess distribution").toString();
+        System.out.println("\tPartite giocate: " + partiteGiocate);
+        System.out.println("\tPercentuale vittoria: " + percentualeVittoria);
+        System.out.println("\tUltima Win Streak: " + ultimaWinStreak);
+        System.out.println("\tMassima Win Streak: " + massimaWinStreak);
+        System.out.println("\tGuess Distribution: " + guessDistribution);
     }
 
 

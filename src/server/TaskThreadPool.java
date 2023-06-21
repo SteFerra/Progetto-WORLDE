@@ -2,6 +2,7 @@ package server;
 
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import condivisi.CodiciRisposta;
 import condivisi.Comandi;
 import condivisi.Risposta;
@@ -17,10 +18,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -71,13 +70,14 @@ public class TaskThreadPool implements Runnable{
                 inviaRisposta(risposta);
                 return;
             }
-            Gioco gioco = new Gioco(userAdmin,rankingService,userSession,client);
+            Gioco gioco = new Gioco(userAdmin,rankingService,userSession,client, multicastService);
             map.put(client, gioco);
             for (Map.Entry<SocketChannel, Gioco> entry : map.entrySet()) {
                 System.out.println(entry.getKey() + " => " + entry.getValue());
             }
             String parolaSegreta = WordleServer.parolaSegreta;
-            gioco.iniziaPartita(parolaSegreta);
+            Integer IDpartita = WordleServer.IDpartita;
+            gioco.iniziaPartita(parolaSegreta, IDpartita);
             userAdmin.setStaGiocando(username,true);
             System.out.printf("L'utente [%s] sta giocando con la parola: %s \n" ,username, parolaSegreta);
             risposta = new Risposta(CodiciRisposta.PLAY, "Puoi iniziare a giocare a Wordle");
@@ -133,8 +133,73 @@ public class TaskThreadPool implements Runnable{
                 System.out.println("Risposta correttamente inviata");
                 inviaRisultato(risultato.toString());
                 System.out.println("Inviato!");
+                }
             }
+        }
+
+        if(cmd.codice == Comandi.CMD_SENDMESTATISTIC){
+            if(cmd.parametri.size() != 0){
+                risposta = new Risposta(CodiciRisposta.ERR_NUMERO_PARAMETRI_ERRATI,"Numero parametri errati");
+                inviaRisposta(risposta);
+                return;
             }
+            //se sta giocando invio un errore
+            else if(userAdmin.staGiocando(userSession.getUsername()) == true){
+                risposta = new Risposta(CodiciRisposta.ERR_DEVI_PRIMA_FINIRE_LA_PARTITA,"Devi prima finire la partita");
+                inviaRisposta(risposta);
+                return;
+            }
+            else{
+                //Procedo a inviare tramite json le statistiche dell'utente
+                HashMap<String, Object> statistiche = userAdmin.getStatistiche(userSession.username);
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                String json = gson.toJson(statistiche);
+                Risposta risposta = new Risposta(CodiciRisposta.STATISTICHE,"Statistiche");
+                inviaRisposta(risposta);
+                inviaRisultato(json);
+            }
+        }
+
+        if(cmd.codice == Comandi.CMD_SHARE){
+            //se sta già giocando
+            if(userAdmin.staGiocando(userSession.getUsername()) == true){
+                risposta = new Risposta(CodiciRisposta.ERR_DEVI_PRIMA_FINIRE_LA_PARTITA,"Devi prima finire la partita");
+                inviaRisposta(risposta);
+                return;
+            }
+
+            if(userAdmin.haGiocato(userSession.getUsername()) == false){
+                risposta = new Risposta(CodiciRisposta.ERR_DEVI_PRIMA_INIZIARE_A_GIOCARE,"Devi prima iniziare e finire la partita");
+                inviaRisposta(risposta);
+                return;
+            }
+
+            //prendo l'esito con i parametri della partita
+            Gioco gioco = map.get(client);
+            if (gioco != null) {
+                int IDPARTITA = gioco.IDpartita;
+                int TENTATIVI = gioco.tentativi;
+                String username = userSession.getUsername();
+                String messaggio = "Utente " + username + " Wordle " + IDPARTITA + ": " + TENTATIVI + "/12";
+                var set = gioco.setTentativiFinale;
+                List<String> stringList = new ArrayList<>(set);
+                int lastIndex = stringList.size() - 1; //rimuovo l'ultimo elemento dalla lista. (rappresenta la stringa con la parola/id).
+                stringList.remove(lastIndex);
+                Set<String> setAggiornato = new LinkedHashSet<>();
+                setAggiornato.add(messaggio);
+                setAggiornato.addAll(stringList);
+                System.out.println(setAggiornato);
+                risposta = new Risposta(CodiciRisposta.SUCCESS, "SUCCESS");
+                inviaRisposta(risposta);
+                multicastService.inviaMessaggioMulticast(setAggiornato);
+            }
+        }
+
+        if(cmd.codice == Comandi.CMD_SHOWMESHARING){
+            var arrayList = multicastService.arrayList;
+            risposta = new Risposta(CodiciRisposta.SUCCESS,"SUCCESS");
+            inviaRisposta(risposta);
+            inviaRisultato(arrayList.toString());
         }
 
     }

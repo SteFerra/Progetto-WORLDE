@@ -24,4 +24,9 @@ public class NotificaAggClassificaImpl extends RemoteObject implements INotifyRa
     public void rankingUpdateEvent(ClassificaData classificaData) throws RemoteException {
         classificalocale.aggiornaClassificaLocale(classificaData);
     }
+
+    @Override
+    public void aggiornaPosiz(String messaggio) throws RemoteException {
+        System.out.println(messaggio);
+    }
 }

@@ -37,6 +37,7 @@ public class Risposta {
 
             //playwordle
             case CodiciRisposta.ERR_PARTITA_GIÀ_GIOCATA -> "Hai già giocato, aspetta l'estrazione della prossima parola";
+            case CodiciRisposta.ERR_DEVI_PRIMA_FINIRE_LA_PARTITA -> "Devi prima terminare la partita";
 
             //sendWord
             case CodiciRisposta.ERR_PAROLA_TROPPO_CORTA -> "Parola troppo corta, Inserisci una parola di 10 lettere";

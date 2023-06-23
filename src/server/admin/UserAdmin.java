@@ -11,6 +11,7 @@ import server.domini.User;
 import java.io.*;
 import java.util.*;
 
+//classe per creare e gestire la lista di utenti registrati con la relativa classe User
 public class UserAdmin {
 
     static final String listaUtentiFile = "UserList.json";
@@ -121,7 +122,7 @@ public class UserAdmin {
         }
     }
 
-    //in caso di vittoria aggiorno tutti i parametri positivi
+    //in caso di vittoria aggiorno le statistiche
     public void aggiornaPartiteVinte(String username, int tentativi){
         for(User user : usersList){
             if(user.getUsername().equals(username)){
@@ -135,6 +136,7 @@ public class UserAdmin {
         }
     }
 
+    //in caso di partita persa aggiorno le statistiche
     public void aggiornaPartitePerse(String username, int tentativi){
         for(User user : usersList){
             if(user.getUsername().equals(username)){
@@ -153,10 +155,9 @@ public class UserAdmin {
             }
         }
     }
-    public List<User> getUserList(){
-        return usersList;
-    }
 
+    //viene chiamata ogni volta viene estratta una nuova parola segreta
+    //dando così modo agli utenti di poter rigiocare
     public void resettaPartita(){
         for(User user : usersList){
             user.setHaGiocato(false);

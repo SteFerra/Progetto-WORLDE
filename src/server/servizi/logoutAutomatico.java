@@ -1,14 +1,10 @@
 package server.servizi;
 
-import condivisi.interfacce.INotifyRankingUpdate;
-
 import java.nio.channels.SocketChannel;
-import java.rmi.RemoteException;
 import java.util.Map;
 
-
 //Classe utilizzata dal Thread logoutAutomaticoThread che rimuove periodicamente i Client che risultano
-//non più connessi dall'elenco degli utenti connessi
+//non più connessi dall'elenco degli utenti connessi, avviene quando un client si disconnette in modo anomalo
 public class logoutAutomatico implements Runnable {
 
     private Map<String,SocketChannel> utentiLoggati;
@@ -21,12 +17,12 @@ public class logoutAutomatico implements Runnable {
 
     public void run(){
         try{
-            while(!Thread.currentThread().isInterrupted()){
-                for(Map.Entry<String, SocketChannel> elemento : utentiLoggati.entrySet()){
+            while(!Thread.currentThread().isInterrupted()){     //fino a quando il Thread non viene interrotto controlla periodicamente tutti i client se sono connessi
+                for(Map.Entry<String, SocketChannel> elemento : utentiLoggati.entrySet()){  //ed elimina quelli disconnessi
                     String username = elemento.getKey();
                     SocketChannel socketChannel = elemento.getValue();
                     if(!socketChannel.isConnected()) {
-                        utentiLoggati.remove(username);
+                        utentiLoggati.remove(username); //ed elimina quelli disconnessi dalla lista.
                     }
                 }
                 Thread.sleep(logoutTimer);

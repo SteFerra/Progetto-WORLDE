@@ -3,14 +3,13 @@ package client;
 import condivisi.ClassificaData;
 import condivisi.interfacce.INotifyRanking;
 import condivisi.interfacce.INotifyRankingUpdate;
-
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 //Questa classe è utilizzata per mantenere salvata la classifica in locale
 public class ClassificaLocale {
@@ -26,7 +25,7 @@ public class ClassificaLocale {
     private String username;
 
     public ClassificaLocale(String classificasvcHost, String classificasvcName, int classificasvcPort){
-        this.classifica = new HashMap<>();
+        this.classifica = new LinkedHashMap<>();
         this.classificaHost = classificasvcHost;
         this.classificaName = classificasvcName;
         this.classificaPort = classificasvcPort;

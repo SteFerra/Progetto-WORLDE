@@ -3,28 +3,24 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 import condivisi.CodiciRisposta;
 import condivisi.Risposta;
 import server.admin.UserAdmin;
-import server.domini.User;
 import server.domini.UserSession;
 import server.servizi.MulticastService;
 import server.servizi.RankingServiceImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
-//Classe che rappresenta la partita
+//Classe che rappresenta la partita, è presente la funzione che permette l'utente d'iniziare a giocare
+//e quella che confronta la parola segreta con quella inviata dall'utente.
 public class Gioco {
     private UserAdmin userAdmin;
     private RankingServiceImpl rankingService;
@@ -37,12 +33,9 @@ public class Gioco {
     public int tentativi = 0;
 
     public Integer IDpartita;
-    public String parolaIndovinata;
     public String parolaSegreta;
-    public Set<String> setTentativi;
-    public Set<String> setTentativiFinale;
-    public int esitoPartita;
-
+    public List<String> setTentativi;
+    public List<String> setTentativiFinale;  //Set<String> che viene inviato all'utente quando perde/vince, o per l'invio nel gruppo Multicast.
 
 
     public Gioco(UserAdmin userAdmin, RankingServiceImpl rankingService, UserSession userSession, SocketChannel client, MulticastService multicastService){
@@ -51,16 +44,15 @@ public class Gioco {
         this.userSession = userSession;
         this.client = client;
         this.multicastService = multicastService;
-        setTentativi = new LinkedHashSet<>();
+        setTentativi = new LinkedList<>();
     }
 
     public void iniziaPartita(String parolaSegreta, Integer IDpartita){
         this.parolaSegreta = parolaSegreta;
         this.IDpartita = IDpartita;
-        this.esitoPartita = 0;
         this.tentativi = 0;
     }
-    public Set<String> indovinaParola(String parolaIndovinata) throws IOException {
+    public List<String> indovinaParola(String parolaIndovinata) throws IOException {
         if(tentativi < maxTentativi) {
             StringBuilder risultato = new StringBuilder();
             for (int i = 0; i < lunghezzaParola; i++) {
@@ -79,14 +71,12 @@ public class Gioco {
             }
             tentativi++;
             String esito = risultato.toString();
-            System.out.println(esito);
 
             if(tentativi == maxTentativi){
                 if(esito.equals("++++++++++")){ //se ha vinto all'ultimo tentativo
                     System.out.printf("L'Utente [%s] ha indovinato la parola: %s \n", userSession.username, parolaSegreta);
-                    esitoPartita = 1;
                     setTentativi.add(esito);
-                    setTentativiFinale = new LinkedHashSet<>();
+                    setTentativiFinale = new LinkedList<>();
                     setTentativiFinale.addAll(setTentativi);
                     String stringa = String.format("La parola segreta è: %s. IdPartita: %s. Numero tentativi impiegati: %s  ", parolaSegreta, IDpartita,tentativi );
                     setTentativiFinale.add(stringa);
@@ -107,11 +97,10 @@ public class Gioco {
                     userAdmin.aggiornaPunteggio(userSession.username);
                     return null;
 
-                }else{ //ha perso (non è riuscito a indovinare la parola all'ultimo tentativo)
+                }else{ //se ha perso (non è riuscito a indovinare la parola all'ultimo tentativo)
                     System.out.printf("L'Utente [%s] ha perso \n", userSession.username);
-                    esitoPartita = 2;
                     setTentativi.add(esito);
-                    setTentativiFinale = new LinkedHashSet<>();
+                    setTentativiFinale = new LinkedList<>();
                     setTentativiFinale.addAll(setTentativi);
                     String stringa = String.format("La parola segreta è: %s. IdPartita: %s. Numero tentativi impiegati: %s  ", parolaSegreta, IDpartita,tentativi );
                     setTentativiFinale.add(stringa);
@@ -134,9 +123,8 @@ public class Gioco {
                 }
             }else if(esito.equals("++++++++++")){ //se ha vinto
                     System.out.printf("L'Utente [%s] ha indovinato la parola: %s \n", userSession.username, parolaSegreta);
-                    esitoPartita = 1;
                     setTentativi.add(esito);
-                    setTentativiFinale = new LinkedHashSet<>();
+                    setTentativiFinale = new LinkedList<>();
                     setTentativiFinale.addAll(setTentativi);
                     String stringa = String.format("La parola segreta è: %s. IdPartita: %s. Numero tentativi impiegati: %s  ", parolaSegreta, IDpartita,tentativi );
                     setTentativiFinale.add(stringa);
@@ -155,11 +143,9 @@ public class Gioco {
                     //Aggiorno le statistiche dell'utente e la classifica
                     userAdmin.aggiornaPartiteVinte(userSession.username, tentativi);
                     userAdmin.aggiornaPunteggio(userSession.username);
-                    //tentativi=0;
                     return null;
             }else { //se sbaglia parola ma ha ancora dei tentativi
                 setTentativi.add(esito);
-                System.out.println("Inserito correttamente");
                 return setTentativi;
             }
         }
@@ -175,21 +161,22 @@ public class Gioco {
 
             //leggo la risposta dal sito
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder response = new StringBuilder();
+            StringBuilder risposta = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                response.append(line);
+                risposta.append(line);
             }
-            reader.close();
+            reader.close(); //quando leggo tutta la risposta chiudo il BufferedReader
 
-            // Analizza la risposta JSON per ottenere la traduzione
-            JsonObject jsonObject = JsonParser.parseString(response.toString()).getAsJsonObject();
+            // Analizza la risposta JSON per ottenere la traduzione e la invio al Client
+            JsonObject jsonObject = JsonParser.parseString(risposta.toString()).getAsJsonObject();
             String traduzione = jsonObject.get("responseData").getAsJsonObject().get("translatedText").getAsString();
             connection.disconnect();
-            System.out.println("Traduzione italiana: " + traduzione);
             inviaRisultato(traduzione);
         }catch (IOException e){
             System.out.println("Non è stato possibile contattare il server mymemory per la traduzione della parola segreta");
+            String risultato = "Errore nel reperire la traduzione dal Server MyMemory";
+            inviaRisultato(risultato);
         }
 
     }

@@ -1,6 +1,5 @@
 package condivisi.interfacce;
 
-import java.nio.channels.SocketChannel;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 

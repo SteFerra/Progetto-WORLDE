@@ -49,8 +49,6 @@ public class WordleServer {
     public static String parolaSegreta;
     private static List<String> paroleSegrete;
 
-    public Gioco gioco;
-
     private final ThreadPoolExecutor threadPool;
 
 
@@ -58,6 +56,7 @@ public class WordleServer {
         config = new WordleServerConfig();
         config.LoadConfig("serverConf.cfg");
 
+        //gestione del file degli utenti registrati
         userAdmin = new UserAdmin();
         userAdmin.initialize();
 
@@ -65,6 +64,7 @@ public class WordleServer {
         rankingAdmin = new RankingAdmin();
         rankingAdmin.inizializza();
 
+        //classe che crea la Map<username,Socket> degli utenti loggati al server
         utenticonnessi = new utentiConnessi();
 
         paroleSegrete = new ArrayList<>();
@@ -83,14 +83,18 @@ public class WordleServer {
         rankingNotifyService = RankingServiceImpl.startNotifyService(config.classificaSvcName, config.classificaSvcPort, rankingAdmin);
         rankingService = (RankingServiceImpl) rankingNotifyService;
 
+        //gruppo multicast
         multicastService.start();
 
         //Legge il file words.txt e salva tutte le parole in una Lista
         leggiFileParole();
 
+        //Quando si riavvia il Server, tutte le partite che erano in sospeso vengono resettate.
+        resettaInGioco();
+
         //ThreadPool per la lettura periodica della parola segreta
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,75, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(WordleServer::estraiParola,3,config.periodo, TimeUnit.SECONDS);
 
 
         //Thread che controlla e rimuove periodicamente i Socket di utenti che risultano ancora loggati
@@ -98,11 +102,12 @@ public class WordleServer {
         logoutAutomaticoThread.start();
 
         //Thread ShutdownHook che salva i vari parametri prima della chiusura del Server
-        ServerShutdownHook shutdownHook = new ServerShutdownHook(userAdmin, rankingAdmin, utenticonnessi);
+        ServerShutdownHook shutdownHook = new ServerShutdownHook(userAdmin, rankingAdmin, utenticonnessi, threadPool);
         Runtime.getRuntime().addShutdownHook(shutdownHook);
         System.out.println("ServerShutdownHook avviato");
 
-        startReceiverCommand(); //Ricezione Comandi
+        //Ricezione Comandi dai Client
+        startReceiverCommand();
     }
 
     private void startReceiverCommand() throws Exception{
@@ -152,7 +157,7 @@ public class WordleServer {
         try {
             client.read(buffer);  // lettura del comando
         }
-        catch(SocketException e){// accade quando il client termina in modo anomalo
+        catch(SocketException e){// accade quando il client termina in modo anomalo, lo tolgo dalla lista di utenti connessi
             aggiornaCallback(client);
             client.close();
             return;
@@ -262,6 +267,15 @@ public class WordleServer {
         System.out.printf("La nuova parola segreta è: %s - IDpartita: %s \n", parolaSegreta ,IDpartita);
     }
 
+
+    //quando il server viene riavviato, tutte le partite precedentemente in corso vengono resettate
+    private void resettaInGioco(){
+        for(User user : userAdmin.usersList){
+            user.setStaGiocando(false);
+        }
+    }
+
+    //Viene usata dal Thread che si occupa della rimozione delle Callback per gli utenti disconnessi senza il logout
     public void aggiornaCallback(SocketChannel clientSocket) throws RemoteException {
         String username = utenticonnessi.getUsername(clientSocket);
         INotifyRankingUpdate stub = rankingNotifyService.getStub(username);

@@ -5,14 +5,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import condivisi.interfacce.INotifyRanking;
-import condivisi.interfacce.INotifyRankingUpdate;
-import server.WordleServer;
 import server.servizi.RankingServiceImpl;
-
 import java.io.*;
 import java.lang.reflect.Type;
-import java.rmi.RemoteException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,7 +19,7 @@ public class RankingAdmin {
 
     private static HashMap<String, Double> classifica;
 
-    private final String classificaFile = "Classifica.json";
+    private static final String classificaFile = "Classifica.json";
 
     //metodo per creare e ripristinare la classifica al riavvio del server
     public void inizializza() throws FileNotFoundException{
@@ -46,7 +41,7 @@ public class RankingAdmin {
     }
 
     //Salvo la classifica sul file .json
-    public void salvaClassifica(){
+    public static synchronized void salvaClassifica(){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         try{
             FileOutputStream fileOutputStream = new FileOutputStream(classificaFile);
@@ -65,10 +60,16 @@ public class RankingAdmin {
         // Salvo la classifica prima dell'aggiornamento
         HashMap<String, Double> classificaPrecedente = new LinkedHashMap<>(classifica);
 
-        // Aggiorno la classifica
+        // Aggiorno e ordino in ordine crescente la classifica
         classifica.put(username, punteggio);
         ordinaClassifica();
         System.out.println("Classifica aggiornata");
+
+        //salvo e invio la classifica aggiornata a tutti i client connessi
+        salvaClassifica();
+        System.out.println("Classifica salvata");
+        RankingServiceImpl.inviaClassificaAggiornata();
+        System.out.println("Inviata la classifica aggiornata ai client");
 
         // Controllo se le prime tre posizioni sono cambiate
         boolean primeTrePosizioniCambiate = false;
@@ -87,6 +88,7 @@ public class RankingAdmin {
         if(primeTrePosizioniCambiate){
             //avviso i client che sono cambiati le prime tre posizioni in classifica
             RankingServiceImpl.aggiornaPosizioni(RankingServiceImpl.clients);
+            System.out.println("C'è stato un aggiornamento nelle prime tre posizioni della Classifica, ho inviato un messaggio ai Client con la Callback ");
         }
     }
 
@@ -94,9 +96,9 @@ public class RankingAdmin {
     //aggiorno la classifica in ordine crescente (punteggio più basso = giocatore più bravo)
     //utilizzo lambda function.
     private static void ordinaClassifica(){
-        classifica = classifica.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        classifica = classifica.entrySet().stream() //restituisce l'insieme di coppie chiave-valore della classifica
+                .sorted(Map.Entry.comparingByValue())   //ordine in modo crescente comparando le coppie
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new)); //il risultato viene raccolto e inserito in un nuova LinkedHashMap.
         System.out.println("Classifica ordinata");
     }
 }

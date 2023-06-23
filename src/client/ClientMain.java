@@ -7,17 +7,12 @@ import condivisi.CodiciRisposta;
 import condivisi.Comandi;
 import condivisi.Risposta;
 import condivisi.interfacce.IRegisterService;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -26,7 +21,7 @@ import java.rmi.registry.Registry;
 import java.util.*;
 
 
-
+//rappresenta il Main del Client
 public class ClientMain {
     public static ClientConfig config;
     private static Map<String,Integer> codiciMap = new HashMap<>() ;
@@ -71,7 +66,7 @@ public class ClientMain {
         System.out.println("In attesa di comandi");
 
         Scanner scanner = new Scanner(System.in);
-        // ciclo per input comandi ed invio
+        // ciclo per lettura in input dei comandi e invio al server
         while (true) {
             System.out.print("> ");
             String inputStr = scanner.nextLine();
@@ -98,12 +93,13 @@ public class ClientMain {
                     }
                     else {
                         var classifica = classificaLocale.StampaClassifica();
-                        if(classifica.isEmpty()) System.out.println("\t Devi prima effettuare il login");
-                        else System.out.printf("\t Classifica:" + "\n" + "\t" + classifica);
+                        if(classifica.isEmpty()) System.out.println("\t La classifica risulta essere vuota ");
+                        else System.out.printf("\t Classifica:" + "\n" + "\t" + classifica + "\n");
                     }
                 }
                 else{
                     Risposta risposta = invioComando(socketChannel, comando);
+                    //succede quando viene ricevuta come risposta un codice di errore
                     if(risposta.esito != CodiciRisposta.SUCCESS && risposta.esito != CodiciRisposta.PLAY && risposta.esito != CodiciRisposta.HAI_VINTO
                             && risposta.esito != CodiciRisposta.ERR_HAI_PERSO && risposta.esito != CodiciRisposta.STATISTICHE)
                         System.out.println("\t" + risposta.MessaggioDiRisposta());
@@ -245,7 +241,7 @@ public class ClientMain {
             byte[] receivedBytes = new byte[buffer.remaining()];
             buffer.get(receivedBytes);
             String messaggio = new String(receivedBytes);
-            Set<String> set = new LinkedHashSet<>(Arrays.asList(messaggio.split(",")));
+            List<String> set = new LinkedList<>(Arrays.asList(messaggio.split(",")));
             for(String string : set){
                 string = string.replace("[", "").replace("]", "").trim();
                 System.out.println("\t" + string);
@@ -253,8 +249,8 @@ public class ClientMain {
             buffer.clear();
             socketChannel.configureBlocking(false);
 
-            // Imposta un timeout di 5 secondi
-            long timeout = 1500; // Tempo in millisecondi
+            // Imposta un timeout di 1.5 secondi in millisecondi
+            long timeout = 1500;
             long startTime = System.currentTimeMillis();
 
             while (System.currentTimeMillis() - startTime < timeout) {
@@ -268,8 +264,14 @@ public class ClientMain {
                     byte[] receivedBytes2 = new byte[buffer.remaining()];
                     buffer.get(receivedBytes2);
                     String traduzione = new String(receivedBytes2);
-                    System.out.println("\tLa traduzione in Italiano della parola segreta è: " + traduzione);
-                    break;
+                    if(traduzione.contains("Errore")){
+                        System.out.println("\t"+traduzione);
+                        break;
+                    }
+                    else {
+                        System.out.println("\tLa traduzione in Italiano della parola segreta è: " + traduzione);
+                        break;
+                    }
                 }
                 buffer.clear();
             }
@@ -337,18 +339,23 @@ public class ClientMain {
         }
     }
 
-
+    //stampa le statistiche dell'utente aggiornate alla partita più recente.
     private static void stampaStatistiche(HashMap<String, Object> statistiche){
         int partiteGiocate = ((Double) statistiche.get("partite giocate")).intValue();
         float percentualeVittoria = ((Double) statistiche.get("percentuale vittoria")).floatValue();
         int ultimaWinStreak = ((Double) statistiche.get("ultima win streak")).intValue();
         int massimaWinStreak = ((Double) statistiche.get("massima win streak")).intValue();
-        String guessDistribution = statistiche.get("guess distribution").toString();
+        ArrayList<Double> guessDistributionList = (ArrayList<Double>) statistiche.get("guess distribution");
+        int[] guessDistribution = new int[guessDistributionList.size()];
+        for (int i = 0; i < guessDistributionList.size(); i++) {
+            guessDistribution[i] = guessDistributionList.get(i).intValue();
+        }
+
         System.out.println("\tPartite giocate: " + partiteGiocate);
         System.out.println("\tPercentuale vittoria: " + percentualeVittoria);
         System.out.println("\tUltima Win Streak: " + ultimaWinStreak);
         System.out.println("\tMassima Win Streak: " + massimaWinStreak);
-        System.out.println("\tGuess Distribution: " + guessDistribution);
+        System.out.println("\tGuess Distribution: " + Arrays.toString(guessDistribution));
     }
 
 
@@ -363,15 +370,15 @@ public class ClientMain {
 
             var risultato = serverObject.register(username, password);
             if(risultato == CodiciRisposta.ERR_USERNAME_NON_VALIDO)
-                System.out.println("< L'Username inserito non è valido ");
+                System.out.println("\tL'Username inserito non è valido ");
             else if(risultato == CodiciRisposta.ERR_USERNAME_GIÀ_PRESO)
-                System.out.println("< L'Username inserito è già stato preso");
+                System.out.println("\tL'Username inserito è già stato preso");
             else if(risultato == CodiciRisposta.ERR_PASSWORD_TROPPO_CORTA)
-                System.out.println("< Password inserita è troppo corta");
+                System.out.println("\tPassword inserita è troppo corta");
             else if(risultato == CodiciRisposta.SUCCESS)
-                System.out.println("< Registrazione effettuata");
+                System.out.println("\tRegistrazione effettuata");
             else
-                System.out.println("< Errore sconosciuto");
+                System.out.println("\tErrore sconosciuto");
         }
         catch (Exception e){
             System.out.println("Si è verificato un errore " + e.toString() + e.getMessage());

@@ -1,6 +1,6 @@
 package server.domini;
 
-// Rappresenta la sessione utente. Contiene il solo username.
+// Identifica la sessione dell'utente loggato. Contiene solo l'username.
 public class UserSession {
     public  String username = null;
 

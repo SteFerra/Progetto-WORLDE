@@ -2,7 +2,7 @@ package server.domini;
 
 import server.admin.RankingAdmin;
 
-//Classe che rappresenta un utente
+//Classe che rappresenta un utente, contiene tutte le informazioni
 public class User {
 
     private int id;
@@ -34,7 +34,7 @@ public class User {
         this.percentVittoria=0;
         this.ultimaWinStreak=0;
         this.maxWinStreak=0;
-        this.guessDistribution= new int[12];
+        this.guessDistribution= new int[13];
         this.haGiocato = false;
         this.staGiocando = false;
     }
@@ -49,16 +49,20 @@ public class User {
         return hashedpwd;
     }
 
+
+    // per calcolare il punteggio, moltiplico la posizione i-esima del vettore
+    // per i stesso. Sommo tutti i prodotti e divido per il numero totale
+    // di partite giocate. Nella somma, tengo conto anche delle parole non
+    // indovinate (partite perse).
     public void aggiornaPunteggio(){
         int sum = 0, maxAttempts=12;
-        for (int i = 0; i < guessDistribution.length; i++) {
-            sum += (i + 1) * guessDistribution[i];
+        for (int i = 1; i < guessDistribution.length; i++) {
+            sum += (i) * guessDistribution[i];
         }
 
         sum += (maxAttempts + 1) * (numPartitePerse);
         this.punteggio = ((double) sum / (double) numPartiteGiocate);
         RankingAdmin.aggiornaClassifica(username, punteggio);
-        System.out.println("Risultato aggiornato: " + punteggio);
     }
 
     public Boolean getHaGiocato(){ return haGiocato; }

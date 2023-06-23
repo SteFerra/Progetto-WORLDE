@@ -26,7 +26,7 @@ public class ConfigReader {
         }
     }
 
-    //Legge la linea di configurazione trascurando i commenti segnati con #
+    //Legge la linea di configurazione trascurando i commenti rappresentati da #
     private void readLine(String line){
         if (line.startsWith("#"))  // è un commento
             return;

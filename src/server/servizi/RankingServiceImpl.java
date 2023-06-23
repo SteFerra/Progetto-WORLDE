@@ -4,9 +4,6 @@ import condivisi.ClassificaData;
 import condivisi.interfacce.INotifyRanking;
 import condivisi.interfacce.INotifyRankingUpdate;
 import server.admin.RankingAdmin;
-import server.domini.utentiConnessi;
-
-import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -91,6 +88,7 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
         return null;
     }
 
+    //invia la classifica agli utenti la prima volta che effettuano il login
     public synchronized void inviaClassifica(INotifyRankingUpdate interfacciaClient, String username){
         var classifica = RankingAdmin.getRanking();
         ClassificaData classificaData = new ClassificaData(classifica);
@@ -100,11 +98,26 @@ public class RankingServiceImpl extends RemoteObject implements INotifyRanking {
             e.printStackTrace();
         }
     }
+
+    //invia il messaggio che ci sono stati dei cambiamenti nelle prime tre posizioni
     public static void aggiornaPosizioni(ArrayList<INotifyRankingUpdate> clients){
         String messaggio = "C'è stato un cambiamento nelle prime tre posizioni della classifica";
         for(INotifyRankingUpdate client : clients){
             try{
                 client.aggiornaPosiz(messaggio);
+            }catch (RemoteException e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    //invia la classifica aggiornata dopo la fine di una qualsiasi partita andata a buon fine ( ha vinto o perso ).
+    public static synchronized void inviaClassificaAggiornata(){
+        var classifica = RankingAdmin.getRanking();
+        ClassificaData classificaData = new ClassificaData(classifica);
+        for(INotifyRankingUpdate interfacciaClient : clients){
+            try {
+                interfacciaClient.rankingUpdateEvent(classificaData);
             }catch (RemoteException e){
                 e.printStackTrace();
             }

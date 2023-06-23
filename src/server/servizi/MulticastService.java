@@ -1,23 +1,22 @@
 package server.servizi;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
+
+//Classe per il gruppo sociale Multicast, qui vengono inviati i messaggi contenenti i tentativi delle partite degli utenti.
 public class MulticastService {
     private final String multicastAddress;
     private final int multicastPort;
     DatagramSocket datagramSocket;
     InetAddress group;
-    public List<String> arrayList;
+    public List<String> arrayList;      //Contiene tutti i tentativi inviati via Multicast dal Server da quando viene avviato.
 
     public MulticastService(String multicastAddress, int multicastPort){
         this.multicastAddress=multicastAddress;
@@ -39,8 +38,8 @@ public class MulticastService {
         }
     }
 
-    public void inviaMessaggioMulticast(Set<String> parole){
-        arrayList.add(parole.toString());
+    public void inviaMessaggioMulticast(List<String> parole){
+        arrayList.add(parole.toString());   //Inserisco i tentativi dell'utente nella Lista di tutti i messaggi inviati via multicast
         String message = String.join(",", parole);
         byte[] content = message.getBytes();
         DatagramPacket packet = new DatagramPacket(content, content.length, group, multicastPort);

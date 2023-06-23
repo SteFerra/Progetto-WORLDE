@@ -4,8 +4,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
-//Classe che si occupa di hashare la password
-// usa SHA-256 e codifica lo hash in string base64.
+//classe che si occupa di fare l'hash della password
+//usa SHA-256 e codifica lo hash in string base64.
 public class Hasher {
 
     public String Hash(String stringToHash) throws NoSuchAlgorithmException {
@@ -15,7 +15,8 @@ public class Hasher {
         return stringHash;
     }
 
-    // controllo se hash di clearString coincide con hashedString
+    // controllo se hash di clearString coincide con hashedString questo per controllare se la password inserita dall'utente coincide con
+    //quella inserita durante il login
     public boolean isValidHashPassword(String clearString, String hashedString) throws NoSuchAlgorithmException {
         var h = this.Hash(clearString);
         return h.equals(hashedString);

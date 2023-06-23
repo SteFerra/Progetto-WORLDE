@@ -1,9 +1,9 @@
 package server;
 
-// configurazione del server, in caso il file di config non sia leggibile, il server utilizza delle impostazioni predefinite.
+// configurazione del server, in caso il file di config non sia leggibile,
+// il server utilizza delle impostazioni predefinite.
 
 import condivisi.ConfigReader;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -25,6 +25,8 @@ public class WordleServerConfig {
     public String multicastAddress ="239.255.32.32";
 
     public int logoutTimer = 5000;
+
+    public int periodo = 180;
 
     public int corePoolSize = 5;
     public int maximumPoolSize = 10;
@@ -64,6 +66,9 @@ public class WordleServerConfig {
             //Logout Automatico
             logoutTimer = cfgReader.getIntValue("logoutTimer", logoutTimer);
 
+            //Periodo estrazione parola segrete
+            periodo = cfgReader.getIntValue("periodo", periodo);
+
             //ThreadPool
             corePoolSize = cfgReader.getIntValue("corePoolSize", corePoolSize);
             maximumPoolSize = cfgReader.getIntValue("maximumPoolSize", maximumPoolSize);
@@ -71,7 +76,7 @@ public class WordleServerConfig {
             sizeWorkQueue = cfgReader.getIntValue("sizeWorkQueue", sizeWorkQueue);
 
         }catch (NumberFormatException e){
-            System.out.println("Errore nei dati. Utilizzo dei valori predefiniti.");
+            System.out.println("Errore nella lettura dati da file di configurazione. Utilizzo dei valori predefiniti.");
         }
     }
 }

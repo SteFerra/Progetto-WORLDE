@@ -1,0 +1,20 @@
+md artefacts
+javac ../src/condivisi/*.java ../src/condivisi/interfacce/*.java -d ./artefacts -cp ./lib/2.10/gson-2.10.jar
+cd ./artefacts
+jar cf ./WordleCondivisiLib.jar ./condivisi/*.class ./condivisi/interfacce/*.class
+cd..
+
+javac ../src/client/*.java -d ./artefacts -cp ./artefacts/WordleCondivisiLib.jar;./lib/2.10/gson-2.10.jar
+cd artefacts
+jar cfm WordleClient.jar ../manifest-client.txt ./client/*.class ./condivisi/*.class ./condivisi/interfacce/*.class
+cd..
+
+javac ../src/server/*.java ../src/server/admin/*.java ../src/server/domini/*.java ../src/server/servizi/*.java -d ./artefacts -cp ./artefacts/WordleCondivisiLib.jar;./lib/2.10/gson-2.10.jar
+cd artefacts
+jar cfm WordleServer.jar ../manifest-server.txt ./server/*.class ./server/admin/*.class ./server/domini/*.class ./server/servizi/*.class ./condivisi/*.class ./condivisi/interfacce/*.class
+cd..
+
+copy "..\lib\2.10\gson-2.10.jar" .
+
+
+java -jar WordleServer.jar
